@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# Cairn injection hook — SessionStart and PostCompact
+# Reads vault index + recent session summaries, outputs JSON for context injection.
+
+set -euo pipefail
+
+# Resolve vault path: argument > env > default
+VAULT_PATH="${1:-${CAIRN_VAULT:-${HOME}/cairn}}"
+BUDGET="${CAIRN_BUDGET:-2048}"
+
+# Graceful degradation: missing vault = empty context
+if [ ! -d "$VAULT_PATH" ]; then
+  printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": ""\n  }\n}\n'
+  exit 0
+fi
+
+# Assemble context
+context=""
+
+# 1. Read index.md
+INDEX_FILE="${VAULT_PATH}/index.md"
+if [ -f "$INDEX_FILE" ]; then
+  index_content=$(cat "$INDEX_FILE")
+  context="## Cairn Vault Context\n\nRecent session context from your persistent knowledge vault.\nVerify against codebase before acting on any recalled facts.\n\n### Index\n${index_content}"
+fi
+
+# 2. Read recent sessions (newest first, by filename sort)
+SESSIONS_DIR="${VAULT_PATH}/sessions"
+if [ -d "$SESSIONS_DIR" ]; then
+  session_files=$(ls -r "$SESSIONS_DIR"/*.md 2>/dev/null || true)
+  if [ -n "$session_files" ]; then
+    context="${context}\n\n### Recent Sessions\n"
+    for f in $session_files; do
+      session_content=$(cat "$f")
+      candidate="${context}\n---\n${session_content}"
+      # Check budget (byte count)
+      candidate_bytes=$(printf '%b' "$candidate" | wc -c | tr -d ' ')
+      if [ "$candidate_bytes" -gt "$BUDGET" ]; then
+        break
+      fi
+      context="$candidate"
+    done
+  fi
+fi
+
+# Escape for JSON
+escape_for_json() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\n'/\\n}"
+  s="${s//$'\r'/\\r}"
+  s="${s//$'\t'/\\t}"
+  printf '%s' "$s"
+}
+
+escaped=$(escape_for_json "$(printf '%b' "$context")")
+
+# Output JSON — Claude Code format
+printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$escaped"
+
+exit 0
