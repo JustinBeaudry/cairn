@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { resolveVaultPath, checkVaultState } from "../src/lib/vault";
-import { DEFAULT_VAULT_PATH } from "../src/lib/constants";
-import { mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { resolveVaultPath, checkVaultState, scaffoldVault } from "../src/lib/vault";
+import { DEFAULT_VAULT_PATH, VAULT_DIRS, VAULT_FILES, VERSION } from "../src/lib/constants";
+import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -64,6 +64,50 @@ describe("checkVaultState", () => {
     mkdirSync(testDir, { recursive: true });
     writeFileSync(join(testDir, "something.txt"), "hello");
     expect(checkVaultState(testDir)).toBe("occupied");
+    rmSync(testDir, { recursive: true });
+  });
+});
+
+describe("scaffoldVault", () => {
+  it("should create all directories and files", () => {
+    const testDir = join(tmpdir(), `cairn-test-${Date.now()}`);
+    const result = scaffoldVault(testDir);
+
+    for (const dir of VAULT_DIRS) {
+      expect(existsSync(join(testDir, dir))).toBe(true);
+    }
+    for (const file of VAULT_FILES) {
+      expect(existsSync(join(testDir, file))).toBe(true);
+    }
+    expect(existsSync(join(testDir, ".cairn", "state.json"))).toBe(true);
+
+    expect(result.created.length).toBeGreaterThan(0);
+    expect(result.skipped).toHaveLength(0);
+
+    rmSync(testDir, { recursive: true });
+  });
+
+  it("should skip existing files on second run", () => {
+    const testDir = join(tmpdir(), `cairn-test-${Date.now()}`);
+    scaffoldVault(testDir);
+    const result = scaffoldVault(testDir);
+
+    expect(result.created).toHaveLength(0);
+    expect(result.skipped.length).toBeGreaterThan(0);
+
+    rmSync(testDir, { recursive: true });
+  });
+
+  it("should write state.json with version", () => {
+    const testDir = join(tmpdir(), `cairn-test-${Date.now()}`);
+    scaffoldVault(testDir);
+    const state = JSON.parse(
+      readFileSync(join(testDir, ".cairn", "state.json"), "utf-8")
+    );
+    expect(state.version).toBe(VERSION);
+    expect(state.vaultPath).toBe(testDir);
+    expect(state.createdAt).toBeDefined();
+
     rmSync(testDir, { recursive: true });
   });
 });
