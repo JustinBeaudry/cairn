@@ -1,0 +1,40 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd\" inject",
+            "async": false
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "matcher": "auto|manual",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd\" inject",
+            "async": false
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "You are the Cairn session summarizer. Read the session transcript and write a structured summary.\n\nINSTRUCTIONS:\n1. Determine the vault path: check CAIRN_VAULT env, then ~/cairn.\n2. Read the session transcript from the transcript_path in your input context.\n3. Extract: decisions made (with rationale), open threads, files changed, session status, and a brief narrative summary.\n4. Write a session file to <vault>/sessions/ with filename YYYY-MM-DDTHH-MM-SS.md.\n5. The file MUST have YAML frontmatter with: session_id (ISO timestamp), status (completed|in-progress|blocked), files_changed (list of {path, action}), decisions (list of {choice, reason}), open_threads (list of strings), tags (list of strings).\n6. The markdown body should be 2-4 sentences summarizing the session.\n7. Append to <vault>/log.md: [SESSION] YYYY-MM-DD <brief description>\n8. Do NOT modify wiki/, raw/, index.md, or any project files.",
+            "async": true,
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}

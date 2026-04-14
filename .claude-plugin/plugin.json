@@ -1,0 +1,19 @@
+{
+  "name": "cairn",
+  "description": "Persistent memory vault for Claude Code. Markdown-based, session-aware, compaction-resilient.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Justin Beaudry"
+  },
+  "homepage": "https://github.com/justinbeaudry/cairn",
+  "repository": "https://github.com/justinbeaudry/cairn",
+  "license": "MIT",
+  "keywords": [
+    "memory",
+    "persistence",
+    "vault",
+    "markdown",
+    "obsidian",
+    "knowledge-base"
+  ]
+}
