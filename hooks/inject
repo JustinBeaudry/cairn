@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Cairn injection hook — SessionStart and PostCompact
-# Reads vault index + recent session summaries, outputs JSON for context injection.
+# Reads vault in priority order: context.md → index.md → recent sessions.
+# Outputs JSON for Claude Code context injection.
 
 set -euo pipefail
 
@@ -14,31 +15,66 @@ if [ ! -d "$VAULT_PATH" ]; then
   exit 0
 fi
 
-# Assemble context
 context=""
+current_bytes=0
 
-# 1. Read index.md
+# Utility: get byte count of a string
+byte_count() {
+  printf '%b' "$1" | wc -c | tr -d ' '
+}
+
+# Utility: append to context if within budget
+append_if_fits() {
+  local section="$1"
+  local candidate
+  if [ -z "$context" ]; then
+    candidate="$section"
+  else
+    candidate="${context}\n\n${section}"
+  fi
+  local candidate_bytes
+  candidate_bytes=$(byte_count "$candidate")
+  if [ "$candidate_bytes" -le "$BUDGET" ]; then
+    context="$candidate"
+    current_bytes=$candidate_bytes
+    return 0
+  fi
+  return 1
+}
+
+# 1. context.md (working set) — highest priority
+CONTEXT_FILE="${VAULT_PATH}/context.md"
+if [ -f "$CONTEXT_FILE" ]; then
+  context_content=$(cat "$CONTEXT_FILE")
+  append_if_fits "## Cairn Vault Context\n\nVerify against codebase before acting on any recalled facts.\n\n### Working Set\n${context_content}" || true
+fi
+
+# 2. index.md — second priority
 INDEX_FILE="${VAULT_PATH}/index.md"
 if [ -f "$INDEX_FILE" ]; then
   index_content=$(cat "$INDEX_FILE")
-  context="## Cairn Vault Context\n\nRecent session context from your persistent knowledge vault.\nVerify against codebase before acting on any recalled facts.\n\n### Index\n${index_content}"
+  if [ -z "$context" ]; then
+    append_if_fits "## Cairn Vault Context\n\nVerify against codebase before acting on any recalled facts.\n\n### Index\n${index_content}" || true
+  else
+    append_if_fits "### Index\n${index_content}" || true
+  fi
 fi
 
-# 2. Read recent sessions (newest first, by filename sort)
+# 3. Recent sessions (newest first, by filename sort)
 SESSIONS_DIR="${VAULT_PATH}/sessions"
 if [ -d "$SESSIONS_DIR" ]; then
   session_files=$(ls -r "$SESSIONS_DIR"/*.md 2>/dev/null || true)
   if [ -n "$session_files" ]; then
-    context="${context}\n\n### Recent Sessions\n"
+    sessions_header_added=false
     for f in $session_files; do
       session_content=$(cat "$f")
-      candidate="${context}\n---\n${session_content}"
-      # Check budget (byte count)
-      candidate_bytes=$(printf '%b' "$candidate" | wc -c | tr -d ' ')
-      if [ "$candidate_bytes" -gt "$BUDGET" ]; then
-        break
+      if [ "$sessions_header_added" = false ]; then
+        section="\n### Recent Sessions\n---\n${session_content}"
+        sessions_header_added=true
+      else
+        section="\n---\n${session_content}"
       fi
-      context="$candidate"
+      append_if_fits "$section" || break
     done
   fi
 fi

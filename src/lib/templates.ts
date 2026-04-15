@@ -12,16 +12,14 @@ export function getCairnMdTemplate(): string {
 
 export const INDEX_MD_STUB = `# Vault Index
 
-Pages are listed newest first. Each entry is ~150 characters.
-
-<!-- Cairn will add entries here as you ingest sources and build knowledge. -->
+<!-- Group pages by topic category. Newest entries first within each category. -->
+<!-- Format: - [[Page Name]] — one-line description (~150 chars max) -->
 `;
 
 export const LOG_MD_STUB = `# Vault Log
 
-Chronological record of vault operations.
-
-<!-- Cairn will append entries here automatically. -->
+<!-- Heading-level entries: ## [YYYY-MM-DD] type | description -->
+<!-- Types: ingest, query, lint, session -->
 `;
 
 export const CONTEXT_MD_STUB = `# Working Set
