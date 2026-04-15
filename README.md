@@ -36,13 +36,13 @@ Create a `.cairn` file in your project root containing the vault path:
 ## Usage
 
 ### Ingest
-Drop a file in `~/cairn/raw/` and ask Claude:
+Give Claude any source — file path, URL, pasted text, or conversation context:
 
-> "Ingest the new file in raw/"
+> "Ingest this article on dependency injection"
 
-Claude reads source, presents takeaways for confirmation, writes wiki pages,
-cascades updates to related pages, updates index and log. Single ingest
-typically touches 5-15 existing pages.
+Claude reads source, copies files to `raw/` for provenance, presents
+takeaways for confirmation, writes wiki pages, cascades updates to related
+pages, updates index and log. Single ingest typically touches 5-15 pages.
 
 ### Query
 Ask Claude anything your vault might know:
