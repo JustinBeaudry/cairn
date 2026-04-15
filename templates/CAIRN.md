@@ -266,6 +266,26 @@ When the user asks you to lint the vault:
 8. **Missing backlinks**: wiki pages without a `## Backlinks` section, or pages whose backlinks are out of sync with actual inbound wikilinks.
 9. Report all findings. All fixes are opt-in — do not auto-fix without user approval.
 
+### Refine
+
+When the user asks you to refine the vault (or runs `/cairn:refine`):
+
+1. Run the vault health dashboard (same as lint step 1) to establish baseline.
+2. **Stale pages**: find pages with `updated` older than 30 days. For each, check if the content is still accurate. Present stale pages to the user with a recommendation: update, archive, or leave.
+3. **Under-connected pages**: find pages with fewer than 3 inbound links (check `## Backlinks` sections). Suggest connections to related pages.
+4. **Merge candidates**: find pages covering overlapping topics (similar tags, significant wikilink overlap). Suggest merges — present both pages and a proposed combined structure.
+5. **Split candidates**: find pages covering multiple distinct topics (multiple H2 sections with unrelated content). Suggest splits.
+6. **Backlinks audit**: update `## Backlinks` sections across the vault to match actual wikilinks.
+7. Apply user-approved changes. Update `index.md` and `context.md` as needed.
+8. Run the vault health dashboard again to show improvement.
+9. Append to `log.md`:
+
+```markdown
+## [YYYY-MM-DD] refine | vault refinement pass
+
+Baseline: N pages, N.N avg links. Updated [[Page A]], merged [[Page B]] + [[Page C]], split [[Page D]]. Result: N pages, N.N avg links.
+```
+
 ## Index Format
 
 `index.md` groups pages by topic category, newest first within each category:
@@ -294,7 +314,7 @@ Categories emerge organically during ingest. Create new categories as needed. Ea
 Details of what was created/updated.
 ```
 
-Types: `ingest`, `query`, `lint`, `session` (lowercase).
+Types: `ingest`, `query`, `lint`, `refine`, `session` (lowercase).
 
 ## Working Set
 
