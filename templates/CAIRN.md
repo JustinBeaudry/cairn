@@ -249,14 +249,22 @@ Synthesized from [[Page A]], [[Page B]]. Created [[Page C]] (if applicable).
 
 When the user asks you to lint the vault:
 
-1. **Orphan pages**: wiki pages with no inbound links from other wiki pages or index.md.
-2. **Dead links**: `[[wikilinks]]` pointing to non-existent pages.
-3. **Missing frontmatter**: wiki pages without required YAML frontmatter fields (`title`, `type`, `created`, `updated`, `tags`).
-4. **Stale content**: pages with `updated` date older than 30 days.
-5. **Missing types**: wiki pages without a valid `type` field.
-6. **Contradictions**: claims in one wiki page that conflict with claims in another. Flag both pages and the conflicting statements. Contradictions are the most dangerous vault failure mode.
-7. **Missing backlinks**: wiki pages without a `## Backlinks` section, or pages whose backlinks are out of sync with actual inbound wikilinks.
-8. Report all findings. All fixes are opt-in — do not auto-fix without user approval.
+1. **Vault health dashboard**: Before listing findings, compute and display:
+   ```
+   ## Vault Health
+   - Pages: N | Links: N | Avg links/page: N.N
+   - Orphans: N | Dead links: N | Stale (>30d): N
+   - Types: concept(N) entity(N) source-summary(N) comparison(N) overview(N)
+   - Backlinks coverage: N/N pages (N%)
+   ```
+2. **Orphan pages**: wiki pages with no inbound links from other wiki pages or index.md.
+3. **Dead links**: `[[wikilinks]]` pointing to non-existent pages.
+4. **Missing frontmatter**: wiki pages without required YAML frontmatter fields (`title`, `type`, `created`, `updated`, `tags`).
+5. **Stale content**: pages with `updated` date older than 30 days.
+6. **Missing types**: wiki pages without a valid `type` field.
+7. **Contradictions**: claims in one wiki page that conflict with claims in another. Flag both pages and the conflicting statements. Contradictions are the most dangerous vault failure mode.
+8. **Missing backlinks**: wiki pages without a `## Backlinks` section, or pages whose backlinks are out of sync with actual inbound wikilinks.
+9. Report all findings. All fixes are opt-in — do not auto-fix without user approval.
 
 ## Index Format
 
