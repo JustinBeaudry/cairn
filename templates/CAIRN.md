@@ -7,7 +7,7 @@ This file defines how you interact with this vault. Follow these conventions exa
 | Directory | Purpose | Who writes |
 |-----------|---------|------------|
 | `wiki/` | Knowledge pages — entities, concepts, summaries | Agent |
-| `raw/` | Source documents — articles, transcripts, images | User (read-only to agent) |
+| `raw/` | Archived source documents — originals preserved for provenance | Agent (copies here during ingest) |
 | `sessions/` | Session summaries — auto-generated at session end | Agent (via hook) |
 | `index.md` | Pointer index — one-line entry per wiki page | Agent |
 | `log.md` | Chronological record — append-only | Agent |
@@ -43,13 +43,14 @@ Keys are lowercase, hyphenated. Tags use `/` for hierarchy.
 ## Workflows
 
 ### Ingest
-When the user asks you to ingest a source from `raw/`:
-1. Read the source file completely
-2. Identify key entities, concepts, and relationships
-3. For each entity/concept, create or update a wiki page in `wiki/`
-4. Link related pages with `[[wikilinks]]` — every page links to at least 2 others
-5. Add an entry to `index.md`: `- [[Page Name]] — one-line description (~150 chars)`
-6. Append to `log.md`: `[INGEST] YYYY-MM-DD Ingested <source filename>: <brief description>`
+When the user asks you to ingest something (file path, URL, pasted text, or conversation context):
+1. Read the source from wherever it lives — a local path, URL, or inline content
+2. If the source is a file, copy it to `raw/` for provenance (preserving original filename)
+3. Identify key entities, concepts, and relationships
+4. For each entity/concept, create or update a wiki page in `wiki/`
+5. Link related pages with `[[wikilinks]]` — every page links to at least 2 others
+6. Add an entry to `index.md`: `- [[Page Name]] — one-line description (~150 chars)`
+7. Append to `log.md`: `[INGEST] YYYY-MM-DD Ingested <source>: <brief description>`
 
 ### Query
 When the user asks a question the vault might answer:
@@ -68,7 +69,7 @@ When the user asks you to lint the vault:
 
 ## Rules
 
-1. **Never modify files in `raw/`.** They are source documents owned by the user.
+1. **Never modify files in `raw/`.** They are archived originals preserved for provenance.
 2. **Every wiki page links to 2+ related pages.** Isolated pages are less useful.
 3. **Frontmatter on every wiki page.** At minimum: `title`, `date`, `tags`.
 4. **index.md format**: `- [[Page Name]] — one-line description`, newest entries first.
