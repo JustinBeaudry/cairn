@@ -233,7 +233,7 @@ Created [[Page A]], [[Page B]]. Updated [[Page C]], [[Page D]], [[Page E]].
 
 When the user asks a question the vault might answer:
 
-1. Read `index.md` first to find relevant pages.
+1. Search for relevant pages: use `qmd_deep_search` if available, otherwise read `index.md`.
 2. Follow `[[wikilinks]]` to read related pages.
 3. Synthesize your answer, citing sources as `[[Page Name]]`.
 4. If your answer contains novel knowledge worth keeping, write a new wiki page and add it to `index.md`.
@@ -334,6 +334,33 @@ Update `context.md` when:
 - The user starts or finishes a major work area
 - Ingested material relates to current focus
 - The user explicitly asks to shift focus
+
+## Search
+
+When [qmd](https://github.com/qntx-labs/qmd) is available (via MCP tools `qmd_search`, `qmd_deep_search`, `qmd_get`), use it as the primary search mechanism for Query and Refine workflows.
+
+### Setup (user responsibility)
+
+1. Install qmd: `curl -fsSL https://sh.qntx.fun/qmd | sh`
+2. Register the vault: `qmd collection add ~/cairn --name cairn --mask "**/*.md"`
+3. Generate embeddings: `qmd embed`
+4. Add MCP server to Claude Code config:
+   ```json
+   {
+     "mcpServers": {
+       "qmd": { "command": "qmd", "args": ["mcp"] }
+     }
+   }
+   ```
+
+### Usage in workflows
+
+When qmd MCP tools are available:
+- **Query**: Use `qmd_deep_search` first, then `qmd_get` for top results, then follow wikilinks. Falls back to reading `index.md` when qmd is not available.
+- **Refine**: Use `qmd_search` to find pages with overlapping content (merge candidates).
+- **Ingest cascade**: Use `qmd_search` to find related pages that need updating.
+
+When qmd is not available, all workflows fall back to reading `index.md` and following wikilinks manually. qmd is optional — the vault works without it.
 
 ## Rules
 
