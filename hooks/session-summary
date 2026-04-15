@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+# Cairn session summary hook — Stop event
+# Reads hook input JSON from stdin, extracts transcript,
+# pipes through claude -p for summarization, writes to sessions/.
+
+set -euo pipefail
+
+# Read hook input from stdin
+INPUT=$(cat)
+TRANSCRIPT_PATH=$(echo "$INPUT" | jq -r '.transcript_path // empty')
+SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // empty')
+
+# Bail if no transcript
+if [ -z "$TRANSCRIPT_PATH" ] || [ ! -f "$TRANSCRIPT_PATH" ]; then
+  exit 0
+fi
+
+# Resolve vault path: env > .cairn file > default
+VAULT_PATH="${CAIRN_VAULT:-${HOME}/cairn}"
+if [ ! -d "$VAULT_PATH" ]; then
+  exit 0
+fi
+
+SESSIONS_DIR="${VAULT_PATH}/sessions"
+mkdir -p "$SESSIONS_DIR"
+
+# Build filename from timestamp
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%S")
+SESSION_FILE="${SESSIONS_DIR}/${TIMESTAMP}.md"
+
+# Skip if file already exists (idempotency)
+if [ -f "$SESSION_FILE" ]; then
+  exit 0
+fi
+
+# Extract human-readable conversation from JSONL transcript.
+# Keep user and assistant messages; skip tool calls and system messages.
+CONVERSATION=$(jq -r '
+  select(.type == "human" or .type == "assistant") |
+  if .type == "human" then
+    "## User\n" + (
+      if (.message.content | type) == "array" then
+        [.message.content[] | select(.type == "text") | .text] | join("\n")
+      elif (.message.content | type) == "string" then
+        .message.content
+      else
+        ""
+      end
+    )
+  elif .type == "assistant" then
+    "## Assistant\n" + (
+      if (.message.content | type) == "array" then
+        [.message.content[] | select(.type == "text") | .text] | join("\n")
+      elif (.message.content | type) == "string" then
+        .message.content
+      else
+        ""
+      end
+    )
+  else
+    empty
+  end
+' "$TRANSCRIPT_PATH" 2>/dev/null || true)
+
+# Bail if transcript extraction produced nothing
+if [ -z "$CONVERSATION" ]; then
+  exit 0
+fi
+
+# Truncate conversation to ~100K chars to stay within model context
+CONVERSATION=$(echo "$CONVERSATION" | head -c 100000)
+
+ISO_TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+TODAY=$(date -u +"%Y-%m-%d")
+
+PROMPT="You are the Cairn session summarizer. Write a structured session summary in markdown.
+
+OUTPUT FORMAT — produce EXACTLY this, nothing else:
+
+---
+session_id: \"${ISO_TIMESTAMP}\"
+status: completed
+extracted: false
+files_changed: []
+decisions: []
+open_threads: []
+tags: []
+---
+
+## Summary
+2-4 sentences summarizing what happened in this session.
+
+## Extraction Candidates
+- **<name>** (<type>) — <why it's worth keeping>
+
+RULES:
+1. Frontmatter fields files_changed, decisions, open_threads, and tags should be populated from the conversation. Use YAML list syntax.
+2. files_changed entries: {path: \"<path>\", action: \"created|modified|deleted\"}
+3. decisions entries: {choice: \"<what>\", reason: \"<why>\"}
+4. Extraction candidate types: concept, entity, source-summary, comparison, overview.
+5. Output ONLY the markdown. No commentary, no code fences wrapping the whole output.
+6. If the session is trivial (quick question, no real work), still produce the format but keep Summary to one sentence and Extraction Candidates to 'None.'
+
+SESSION TRANSCRIPT:
+
+${CONVERSATION}"
+
+# Run through claude -p (uses user's configured model, haiku sensible default)
+SUMMARY=$(echo "$PROMPT" | claude -p --model haiku 2>/dev/null || true)
+
+# Bail if claude produced nothing
+if [ -z "$SUMMARY" ]; then
+  exit 0
+fi
+
+# Write session file
+echo "$SUMMARY" > "$SESSION_FILE"
+
+# Append to log.md
+LOG_FILE="${VAULT_PATH}/log.md"
+if [ -f "$LOG_FILE" ]; then
+  # Extract first sentence of summary for log description
+  DESCRIPTION=$(echo "$SUMMARY" | grep -A1 "## Summary" | tail -1 | head -c 120)
+  echo "" >> "$LOG_FILE"
+  echo "## [${TODAY}] session | ${DESCRIPTION}" >> "$LOG_FILE"
+fi
+
+exit 0
