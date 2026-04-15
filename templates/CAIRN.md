@@ -4,13 +4,48 @@ This file defines how you interact with this vault. Follow these conventions exa
 
 ## Vault Structure
 
-| Directory | Purpose | Who writes |
-|-----------|---------|------------|
-| `wiki/` | Knowledge pages — entities, concepts, summaries | Agent |
+| Directory / File | Purpose | Who writes |
+|------------------|---------|------------|
+| `wiki/` | Knowledge pages — entities, concepts, summaries, comparisons, overviews | Agent |
 | `raw/` | Archived source documents — originals preserved for provenance | Agent (copies here during ingest) |
 | `sessions/` | Session summaries — auto-generated at session end | Agent (via hook) |
-| `index.md` | Pointer index — one-line entry per wiki page | Agent |
-| `log.md` | Chronological record — append-only | Agent |
+| `context.md` | Working set — current focus areas for context injection | Agent (with user direction) |
+| `index.md` | Categorized pointer index — one-line entry per wiki page | Agent |
+| `log.md` | Chronological record — append-only, heading-level entries | Agent |
+
+## Page Types
+
+Every wiki page has a `type` field in frontmatter. Use the type that best fits the content:
+
+| Type | Purpose | Content shape |
+|------|---------|---------------|
+| `concept` | Ideas, techniques, patterns | Definition, examples, related concepts, when to use |
+| `entity` | People, orgs, tools, projects | Description, role/purpose, relationships, links |
+| `source-summary` | Digest of a `raw/` document | Key takeaways, quotes, what it changes about existing knowledge |
+| `comparison` | X vs Y analysis | Criteria, trade-offs, recommendation, when to pick each |
+| `overview` | Topic area index with narrative | Guided tour of a domain, links to all relevant pages |
+
+## Frontmatter
+
+Every wiki page starts with YAML frontmatter:
+
+```yaml
+---
+title: Page Title
+type: concept | entity | source-summary | comparison | overview
+source: "[[raw/filename.md]]" or URL
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+tags:
+  - topic/subtopic
+aliases:
+  - Alternate Name
+---
+```
+
+Required fields: `title`, `type`, `created`, `updated`, `tags`.
+`source` is required for `source-summary` pages, optional for others.
+`aliases` is optional.
 
 ## Markdown Conventions
 
@@ -21,20 +56,6 @@ Use `[[wikilinks]]` for all internal references:
 - `[[Page Name#Heading]]` — link to heading
 - `[[Page Name#^block-id]]` — link to block
 
-### Frontmatter
-Every wiki page starts with YAML frontmatter:
-```yaml
----
-title: Page Title
-date: YYYY-MM-DD
-tags:
-  - topic/subtopic
-aliases:
-  - Alternate Name
----
-```
-Keys are lowercase, hyphenated. Tags use `/` for hierarchy.
-
 ### Embeds and Callouts
 - Embed a page: `![[Page Name]]`
 - Embed a heading: `![[Page Name#Heading]]`
@@ -43,36 +64,112 @@ Keys are lowercase, hyphenated. Tags use `/` for hierarchy.
 ## Workflows
 
 ### Ingest
+
 When the user asks you to ingest something (file path, URL, pasted text, or conversation context):
-1. Read the source from wherever it lives — a local path, URL, or inline content
-2. If the source is a file, copy it to `raw/` for provenance (preserving original filename)
-3. Identify key entities, concepts, and relationships
-4. For each entity/concept, create or update a wiki page in `wiki/`
-5. Link related pages with `[[wikilinks]]` — every page links to at least 2 others
-6. Add an entry to `index.md`: `- [[Page Name]] — one-line description (~150 chars)`
-7. Append to `log.md`: `[INGEST] YYYY-MM-DD Ingested <source>: <brief description>`
+
+1. Read the source from wherever it lives — a local path, URL, or inline content.
+2. If the source is a file, copy it to `raw/` for provenance (preserving original filename).
+3. **Present key takeaways to the user**: entities found, concepts identified, relationships discovered, and any contradictions with existing wiki content. Confirm which are worth filing before proceeding.
+4. For each confirmed entity/concept, create or update a wiki page in `wiki/`.
+5. **Review all existing wiki pages that relate to this source.** Update them with new cross-references, corrections, or additional context from this source. A single ingest typically touches 5-15 existing pages.
+6. Link related pages with `[[wikilinks]]` — every page links to at least 2 others.
+7. Update `context.md` if the ingested material relates to current focus areas.
+8. Add entries to `index.md` under the appropriate category.
+9. Append to `log.md`:
+
+```markdown
+## [YYYY-MM-DD] ingest | <source title>
+
+Created [[Page A]], [[Page B]]. Updated [[Page C]], [[Page D]], [[Page E]].
+```
 
 ### Query
+
 When the user asks a question the vault might answer:
-1. Read `index.md` first to find relevant pages
-2. Follow `[[wikilinks]]` to read related pages
-3. Synthesize your answer, citing sources as `[[Page Name]]`
-4. If your answer contains novel knowledge worth keeping, write a new wiki page
+
+1. Read `index.md` first to find relevant pages.
+2. Follow `[[wikilinks]]` to read related pages.
+3. Synthesize your answer, citing sources as `[[Page Name]]`.
+4. If your answer contains novel knowledge worth keeping, write a new wiki page and add it to `index.md`.
+5. Append to `log.md`:
+
+```markdown
+## [YYYY-MM-DD] query | <brief question summary>
+
+Synthesized from [[Page A]], [[Page B]]. Created [[Page C]] (if applicable).
+```
 
 ### Lint
+
 When the user asks you to lint the vault:
-1. **Orphan pages**: wiki pages with no inbound links from other wiki pages or index.md
-2. **Dead links**: `[[wikilinks]]` pointing to non-existent pages
-3. **Missing frontmatter**: wiki pages without YAML frontmatter
-4. **Stale content**: pages tagged `#status/active` with no updates in 30+ days
-5. Report all findings. All fixes are opt-in — do not auto-fix without user approval.
+
+1. **Orphan pages**: wiki pages with no inbound links from other wiki pages or index.md.
+2. **Dead links**: `[[wikilinks]]` pointing to non-existent pages.
+3. **Missing frontmatter**: wiki pages without required YAML frontmatter fields (`title`, `type`, `created`, `updated`, `tags`).
+4. **Stale content**: pages with `updated` date older than 30 days.
+5. **Missing types**: wiki pages without a valid `type` field.
+6. **Contradictions**: claims in one wiki page that conflict with claims in another. Flag both pages and the conflicting statements. Contradictions are the most dangerous vault failure mode.
+7. Report all findings. All fixes are opt-in — do not auto-fix without user approval.
+
+## Index Format
+
+`index.md` groups pages by topic category, newest first within each category:
+
+```markdown
+# Vault Index
+
+## Architecture
+- [[Layered Architecture]] — Handler → Service → Repo/Gateway boundaries
+- [[Dependency Injection]] — Constructor-based DI pattern for Go services
+
+## Tools
+- [[React 19]] — New features: use hook, actions, compiler
+- [[Stripe]] — Payment gateway integration patterns
+```
+
+Categories emerge organically during ingest. Create new categories as needed. Each entry: `- [[Page Name]] — one-line description` (~150 chars max).
+
+## Log Format
+
+`log.md` uses heading-level entries for Obsidian folding and CLI parsing:
+
+```markdown
+## [YYYY-MM-DD] type | description
+
+Details of what was created/updated.
+```
+
+Types: `ingest`, `query`, `lint`, `session` (lowercase).
+
+## Working Set
+
+`context.md` tracks current focus areas. The inject hook reads this first — it gets highest priority in the context budget.
+
+```markdown
+# Working Set
+
+## Active
+- [[Page Name]] — why it matters right now
+
+## Background
+- [[Page Name]] — reference material for active work
+```
+
+Update `context.md` when:
+- The user starts or finishes a major work area
+- Ingested material relates to current focus
+- The user explicitly asks to shift focus
 
 ## Rules
 
 1. **Never modify files in `raw/`.** They are archived originals preserved for provenance.
 2. **Every wiki page links to 2+ related pages.** Isolated pages are less useful.
-3. **Frontmatter on every wiki page.** At minimum: `title`, `date`, `tags`.
-4. **index.md format**: `- [[Page Name]] — one-line description`, newest entries first.
-5. **log.md format**: `[TYPE] YYYY-MM-DD description`. Types: `INGEST`, `QUERY`, `LINT`, `SESSION`.
-6. **Skeptical memory**: Before acting on any recalled fact, verify it against the current codebase or source. Memory is a hint, not truth.
-7. **Atomic pages**: One concept per wiki page. If a page covers multiple topics, split it.
+3. **Frontmatter on every wiki page.** Required: `title`, `type`, `created`, `updated`, `tags`.
+4. **Use the correct page type.** Match content to the five defined types.
+5. **Discuss before filing.** Present takeaways to the user before creating pages during ingest.
+6. **Cascade updates.** When ingesting, review and update all related existing pages.
+7. **Categorize the index.** Group entries by topic domain, not flat chronological.
+8. **Heading-level log entries.** Use `## [YYYY-MM-DD] type | description` format.
+9. **Maintain the working set.** Keep `context.md` current with active focus areas.
+10. **Skeptical memory.** Before acting on any recalled fact, verify it against the current codebase or source. Memory is a hint, not truth.
+11. **Atomic pages.** One concept per wiki page. If a page covers multiple topics, split it.
