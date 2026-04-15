@@ -55,6 +55,16 @@ tags:
 - **User asks to lint**: Report orphans, dead links, missing frontmatter, stale content,
   missing types, and contradictions.
 - **Recall needed**: If you need context from a past session, read `sessions/`.
+- **User asks to refine**: Run `/cairn:refine` or follow the Refine workflow in CAIRN.md.
+  Systematic improvement: stale pages, weak connections, merge/split candidates, backlink audit.
+- **User asks to extract from sessions**: Run `/cairn:extract` or follow the extraction workflow.
+  Sessions are sources — ingest unprocessed session summaries into wiki pages.
+
+## Search (optional)
+
+If qmd MCP tools are available (`qmd_search`, `qmd_deep_search`, `qmd_get`), use
+`qmd_deep_search` as the first step in Query and Refine workflows. Falls back to
+reading `index.md` and following wikilinks when qmd is not available.
 
 ## Ingest Workflow
 
@@ -88,6 +98,8 @@ tags:
 8. Index is categorized by topic, not flat chronological.
 9. Log entries use heading format: `## [YYYY-MM-DD] type | description`.
 10. Keep `context.md` current with active focus areas.
+11. Maintain backlinks — every wiki page has a `## Backlinks` section. Update when creating or changing wikilinks.
+12. Use page templates — follow the structural template for each page type defined in CAIRN.md.
 
 ## Quick Reference
 
@@ -96,3 +108,6 @@ tags:
 - Index: `- [[Page Name]] — one-line description` grouped by category
 - Log: `## [YYYY-MM-DD] type | description` (types: ingest, query, lint, session)
 - Page types: concept, entity, source-summary, comparison, overview
+- Backlinks: `## Backlinks` section at bottom of every wiki page, agent-maintained
+- Refine: stale pages, under-connected, merge/split candidates, backlink audit
+- Extract: ingest unprocessed sessions into wiki pages
