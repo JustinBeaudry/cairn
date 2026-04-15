@@ -106,7 +106,7 @@ reading `index.md` and following wikilinks when qmd is not available.
 - Wikilinks: `[[Page Name]]`, `[[Page#Heading]]`, `[[Page|Alias]]`
 - Embeds: `![[Page Name]]`
 - Index: `- [[Page Name]] — one-line description` grouped by category
-- Log: `## [YYYY-MM-DD] type | description` (types: ingest, query, lint, session)
+- Log: `## [YYYY-MM-DD] type | description` (types: ingest, query, lint, refine, session)
 - Page types: concept, entity, source-summary, comparison, overview
 - Backlinks: `## Backlinks` section at bottom of every wiki page, agent-maintained
 - Refine: stale pages, under-connected, merge/split candidates, backlink audit
