@@ -218,9 +218,10 @@ When the user asks you to ingest something (file path, URL, pasted text, or conv
 4. For each confirmed entity/concept, create or update a wiki page in `wiki/`.
 5. **Review all existing wiki pages that relate to this source.** Update them with new cross-references, corrections, or additional context from this source. A single ingest typically touches 5-15 existing pages.
 6. Link related pages with `[[wikilinks]]` — every page links to at least 2 others.
-7. Update `context.md` if the ingested material relates to current focus areas.
-8. Add entries to `index.md` under the appropriate category.
-9. Append to `log.md`:
+7. Update `## Backlinks` sections on all pages you linked to — add an entry with context for each new inbound link.
+8. Update `context.md` if the ingested material relates to current focus areas.
+9. Add entries to `index.md` under the appropriate category.
+10. Append to `log.md`:
 
 ```markdown
 ## [YYYY-MM-DD] ingest | <source title>
@@ -254,7 +255,8 @@ When the user asks you to lint the vault:
 4. **Stale content**: pages with `updated` date older than 30 days.
 5. **Missing types**: wiki pages without a valid `type` field.
 6. **Contradictions**: claims in one wiki page that conflict with claims in another. Flag both pages and the conflicting statements. Contradictions are the most dangerous vault failure mode.
-7. Report all findings. All fixes are opt-in — do not auto-fix without user approval.
+7. **Missing backlinks**: wiki pages without a `## Backlinks` section, or pages whose backlinks are out of sync with actual inbound wikilinks.
+8. Report all findings. All fixes are opt-in — do not auto-fix without user approval.
 
 ## Index Format
 
@@ -318,3 +320,4 @@ Update `context.md` when:
 9. **Maintain the working set.** Keep `context.md` current with active focus areas.
 10. **Skeptical memory.** Before acting on any recalled fact, verify it against the current codebase or source. Memory is a hint, not truth.
 11. **Atomic pages.** One concept per wiki page. If a page covers multiple topics, split it.
+12. **Maintain backlinks.** Every wiki page has a `## Backlinks` section at the bottom listing pages that link to it, with context. Update backlinks on the target page whenever you create or update a wikilink.
