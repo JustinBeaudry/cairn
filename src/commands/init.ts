@@ -1,5 +1,6 @@
 import { defineCommand } from "citty";
 import { resolveVaultPath, checkVaultState, scaffoldVault } from "../lib/vault";
+import { isQmdOnPath, QMD_INSTALL_HINT } from "../lib/qmd";
 
 export default defineCommand({
   meta: { name: "init", description: "Initialize a Cairn vault" },
@@ -43,5 +44,10 @@ export default defineCommand({
     console.log("\nNext steps:");
     console.log("  1. Install the plugin: claude plugin add cairn");
     console.log("  2. Drop a file in ~/cairn/raw/ and ask Claude to ingest it.");
+
+    if (!isQmdOnPath()) {
+      console.log("");
+      console.log(QMD_INSTALL_HINT);
+    }
   },
 });

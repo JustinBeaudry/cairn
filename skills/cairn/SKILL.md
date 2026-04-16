@@ -62,9 +62,18 @@ tags:
 
 ## Search (optional)
 
-If qmd MCP tools are available (`qmd_search`, `qmd_deep_search`, `qmd_get`), use
-`qmd_deep_search` as the first step in Query and Refine workflows. Falls back to
-reading `index.md` and following wikilinks when qmd is not available.
+Before a Query or Refine pass, check your tool list for qmd MCP tools. Look for
+tool names matching `mcp__qmd__qmd_search`, `mcp__qmd__qmd_deep_search`, and
+`mcp__qmd__qmd_get` (or the non-prefixed `qmd_*` form, depending on how the
+MCP server is registered).
+
+- **If present**: use `qmd_deep_search` as the first step. Feed hits into
+  `qmd_get` to pull full page content. Then walk wikilinks from those results.
+- **If absent**: fall back to reading `index.md` and walking `[[wikilinks]]`
+  manually. Announce the fallback once per session so the user knows hybrid
+  search is off.
+
+Do not guess — decide from the actual tool list, not from memory.
 
 ## Ingest Workflow
 

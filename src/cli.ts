@@ -9,6 +9,7 @@ const main = defineCommand({
   },
   subCommands: {
     init: () => import("./commands/init").then((m) => m.default),
+    doctor: () => import("./commands/doctor").then((m) => m.default),
     uninstall: () => import("./commands/uninstall").then((m) => m.default),
   },
 });

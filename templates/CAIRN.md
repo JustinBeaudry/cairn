@@ -355,12 +355,18 @@ When [qmd](https://github.com/qntx-labs/qmd) is available (via MCP tools `qmd_se
 
 ### Usage in workflows
 
-When qmd MCP tools are available:
-- **Query**: Use `qmd_deep_search` first, then `qmd_get` for top results, then follow wikilinks. Falls back to reading `index.md` when qmd is not available.
+Before each workflow, check your actual tool list for `mcp__qmd__qmd_search`,
+`mcp__qmd__qmd_deep_search`, and `mcp__qmd__qmd_get` (or the non-prefixed
+`qmd_*` form). Decide from presence, not from memory.
+
+When the tools are present:
+- **Query**: Use `qmd_deep_search` first, then `qmd_get` for top results, then follow wikilinks.
 - **Refine**: Use `qmd_search` to find pages with overlapping content (merge candidates).
 - **Ingest cascade**: Use `qmd_search` to find related pages that need updating.
 
-When qmd is not available, all workflows fall back to reading `index.md` and following wikilinks manually. qmd is optional — the vault works without it.
+When the tools are absent, fall back to reading `index.md` and following
+wikilinks manually. Announce the fallback once per session. qmd is optional —
+the vault works without it.
 
 ## Rules
 

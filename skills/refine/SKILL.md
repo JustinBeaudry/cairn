@@ -39,7 +39,9 @@ When the user runs `/cairn:refine`:
 
 4. **Under-connected pages** (< 3 inbound links):
    - Check `## Backlinks` sections to count inbound links.
-   - Use `qmd_search` (if available) or read `index.md` to find related pages.
+   - Check your tool list for `mcp__qmd__qmd_search` (or `qmd_search`). If
+     present, use it to find related pages by keyword overlap. Otherwise, read
+     `index.md` and scan category neighbors.
    - Suggest new connections: "[[Page A]] has 1 inbound link. Related to [[Page B]] and [[Page C]]?"
    - If approved, add wikilinks and update backlinks on both sides.
 
