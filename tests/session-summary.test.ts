@@ -210,4 +210,40 @@ describe("session-summary hook", () => {
     expect(output).toContain("hello");
     expect(output).toContain("Found 2 files");
   });
+
+  describe("entire integration", () => {
+    it("should detect entire enabled via status output parsing", async () => {
+      const proc = Bun.spawn(
+        ["bash", "-c", `
+          if command -v entire >/dev/null 2>&1 && entire status 2>/dev/null | grep -q "Enabled"; then
+            echo "enabled"
+          else
+            echo "disabled"
+          fi
+        `],
+        { stdout: "pipe", stderr: "pipe", cwd: process.cwd() }
+      );
+      const output = (await new Response(proc.stdout).text()).trim();
+      expect(output).toBe("enabled");
+    });
+
+    it("should report disabled when entire not on path", async () => {
+      const proc = Bun.spawn(
+        ["bash", "-c", `
+          if command -v entire >/dev/null 2>&1 && entire status 2>/dev/null | grep -q "Enabled"; then
+            echo "enabled"
+          else
+            echo "disabled"
+          fi
+        `],
+        {
+          stdout: "pipe",
+          stderr: "pipe",
+          env: { ...process.env, PATH: "/usr/bin:/bin" },
+        }
+      );
+      const output = (await new Response(proc.stdout).text()).trim();
+      expect(output).toBe("disabled");
+    });
+  });
 });
