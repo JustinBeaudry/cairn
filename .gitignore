@@ -4,3 +4,9 @@ dist/
 .DS_Store
 docs/
 PRD.md
+
+# Agent config dirs (local)
+.claude/
+.codex/
+.entire/
+.gemini/
