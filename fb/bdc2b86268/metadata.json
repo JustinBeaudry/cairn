@@ -3,7 +3,7 @@
   "checkpoint_id": "fbbdc2b86268",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 4,
+  "checkpoints_count": 5,
   "files_touched": [
     "commands/init.md",
     "docs/plans/2026-04-17-002-feat-session-aggregation-plan.md"
@@ -20,13 +20,19 @@
       "transcript": "/fb/bdc2b86268/1/full.jsonl",
       "content_hash": "/fb/bdc2b86268/1/content_hash.txt",
       "prompt": "/fb/bdc2b86268/1/prompt.txt"
+    },
+    {
+      "metadata": "/fb/bdc2b86268/2/metadata.json",
+      "transcript": "/fb/bdc2b86268/2/full.jsonl",
+      "content_hash": "/fb/bdc2b86268/2/content_hash.txt",
+      "prompt": "/fb/bdc2b86268/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 33,
-    "cache_creation_tokens": 220572,
-    "cache_read_tokens": 819735,
-    "output_tokens": 17475,
-    "api_call_count": 11
+    "input_tokens": 42,
+    "cache_creation_tokens": 246942,
+    "cache_read_tokens": 920138,
+    "output_tokens": 18890,
+    "api_call_count": 12
   }
 }
