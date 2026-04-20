@@ -3,10 +3,13 @@
   "checkpoint_id": "fbbdc2b86268",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 5,
+  "checkpoints_count": 17,
   "files_touched": [
     "commands/init.md",
-    "docs/plans/2026-04-17-002-feat-session-aggregation-plan.md"
+    "docs/ideation/2026-04-17-open-ideation.md",
+    "docs/plans/2026-04-17-001-fix-remove-init-slash-command-plan.md",
+    "docs/plans/2026-04-17-002-feat-session-aggregation-plan.md",
+    "docs/plans/2026-04-17-002-feat-template-schema-migration-plan.md"
   ],
   "sessions": [
     {
@@ -26,13 +29,19 @@
       "transcript": "/fb/bdc2b86268/2/full.jsonl",
       "content_hash": "/fb/bdc2b86268/2/content_hash.txt",
       "prompt": "/fb/bdc2b86268/2/prompt.txt"
+    },
+    {
+      "metadata": "/fb/bdc2b86268/3/metadata.json",
+      "transcript": "/fb/bdc2b86268/3/full.jsonl",
+      "content_hash": "/fb/bdc2b86268/3/content_hash.txt",
+      "prompt": "/fb/bdc2b86268/3/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 42,
-    "cache_creation_tokens": 246942,
-    "cache_read_tokens": 920138,
-    "output_tokens": 18890,
-    "api_call_count": 12
+    "input_tokens": 16190,
+    "cache_creation_tokens": 1064628,
+    "cache_read_tokens": 13834324,
+    "output_tokens": 100196,
+    "api_call_count": 95
   }
 }

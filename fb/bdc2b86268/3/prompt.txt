@@ -1,0 +1,45 @@
+/compound-engineering:ce-plan remove the / init slash command, as it overrides the init command for creating CLAUDE.md
+
+---
+
+just git rm it and also update my local cairn installation
+
+---
+
+/compound-engineering:ce-review review this against the source material link found in the @README.md, make sure the skills make sense and accomplish what they claim to
+
+---
+
+/compound-engineering:ce-work-beta do it
+
+---
+
+1,2,3
+
+---
+
+/compound-engineering:ce-ideate
+
+---
+
+proceed
+
+---
+
+3
+
+---
+
+2
+
+---
+
+/compound-engineering:ce-plan
+
+---
+
+1
+
+---
+
+1
