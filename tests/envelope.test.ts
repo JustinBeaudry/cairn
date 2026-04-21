@@ -68,8 +68,45 @@ describe("envelope — writeEnvelope / parseEnvelope roundtrip", () => {
   });
 
   it("parse rejects mismatched length", () => {
-    const body = JSON.stringify({ schema_version: "1", nonce: "x", policy: {}, chunks: [] });
+    const body = JSON.stringify({ schema_version: "1", nonce: "f".repeat(32), policy: {}, chunks: [] });
     const wrong = `${new TextEncoder().encode(body).length + 10}\n${body}`;
     expect(() => parseEnvelope(wrong)).toThrow();
+  });
+
+  it("parse rejects unknown schema_version", () => {
+    const body = JSON.stringify({ schema_version: "2", nonce: "f".repeat(32), policy: {}, chunks: [] });
+    const wire = `${new TextEncoder().encode(body).length}\n${body}`;
+    expect(() => parseEnvelope(wire)).toThrow(/schema_version/);
+  });
+
+  it("parse rejects missing nonce", () => {
+    const body = JSON.stringify({ schema_version: "1", policy: {}, chunks: [] });
+    const wire = `${new TextEncoder().encode(body).length}\n${body}`;
+    expect(() => parseEnvelope(wire)).toThrow(/nonce/);
+  });
+
+  it("parse rejects non-hex nonce", () => {
+    const body = JSON.stringify({ schema_version: "1", nonce: "not-hex", policy: {}, chunks: [] });
+    const wire = `${new TextEncoder().encode(body).length}\n${body}`;
+    expect(() => parseEnvelope(wire)).toThrow(/nonce/);
+  });
+
+  it("parse rejects chunks with invalid curation", () => {
+    const body = JSON.stringify({
+      schema_version: "1",
+      nonce: "f".repeat(32),
+      policy: {},
+      chunks: [
+        { source: "x", line_range: [1, 1], curation: "poisoned", text: "" },
+      ],
+    });
+    const wire = `${new TextEncoder().encode(body).length}\n${body}`;
+    expect(() => parseEnvelope(wire)).toThrow(/curation/);
+  });
+
+  it("parse rejects non-object policy", () => {
+    const body = JSON.stringify({ schema_version: "1", nonce: "f".repeat(32), policy: "x", chunks: [] });
+    const wire = `${new TextEncoder().encode(body).length}\n${body}`;
+    expect(() => parseEnvelope(wire)).toThrow(/policy/);
   });
 });

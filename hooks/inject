@@ -2,8 +2,24 @@
 # Cairn injection hook — SessionStart and PostCompact
 # Delegates to the TypeScript implementation for mode-aware injection
 # (eager | lazy | off), pointer payloads, and inject logging.
+#
+# Fail-soft: if bun is missing or the TS hook errors, emit an empty
+# context envelope so SessionStart does not break.
 
-set -euo pipefail
+set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-exec bun "${SCRIPT_DIR}/../src/hooks/inject.ts" "$@"
+
+emit_empty() {
+  printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":""}}\n'
+}
+
+if ! command -v bun >/dev/null 2>&1; then
+  emit_empty
+  exit 0
+fi
+
+if ! exec bun "${SCRIPT_DIR}/../src/hooks/inject.ts" "$@"; then
+  emit_empty
+  exit 0
+fi

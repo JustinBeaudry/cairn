@@ -47,18 +47,22 @@ async function run(vault: string, ...extraArgs: string[]): Promise<{ stdout: str
 }
 
 describe("list-topics command", () => {
-  it("returns envelope with headings as chunk text", async () => {
+  it("returns one envelope chunk per heading with accurate line numbers", async () => {
     const vault = makeVault();
     const { stdout, exitCode } = await run(vault);
     expect(exitCode).toBe(0);
     const env = parseEnvelope(stdout);
     expect(env.schema_version).toBe("1");
     expect(env.policy).toMatchObject({ source_scope: "wiki" });
-    expect(env.chunks.length).toBe(1);
-    expect(env.chunks[0]!.source).toBe("index.md");
-    expect(env.chunks[0]!.curation).toBe("curated");
-    expect(env.chunks[0]!.text).toContain("Architecture");
-    expect(env.chunks[0]!.text).toContain("People");
+    const texts = env.chunks.map((c) => c.text);
+    expect(texts).toContain("Architecture");
+    expect(texts).toContain("People");
+    for (const chunk of env.chunks) {
+      expect(chunk.source).toBe("index.md");
+      expect(chunk.curation).toBe("curated");
+      expect(chunk.line_range[0]).toBe(chunk.line_range[1]);
+      expect(chunk.line_range[0]).toBeGreaterThan(0);
+    }
   });
 
   it("missing index.md returns envelope with empty chunks, not an error", async () => {

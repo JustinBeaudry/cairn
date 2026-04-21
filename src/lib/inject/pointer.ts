@@ -19,10 +19,18 @@ export interface PointerInput {
   vaultPath: string;
 }
 
+function readIndexSafely(indexPath: string): string {
+  try {
+    return readFileSync(indexPath, "utf-8");
+  } catch {
+    return "";
+  }
+}
+
 export function buildPointerPayload({ vaultPath }: PointerInput): string {
   const indexPath = join(vaultPath, "index.md");
   const categories: string[] = existsSync(indexPath)
-    ? extractCategories(readFileSync(indexPath, "utf-8"))
+    ? extractCategories(readIndexSafely(indexPath))
     : [];
 
   const header =

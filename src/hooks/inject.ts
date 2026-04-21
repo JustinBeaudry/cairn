@@ -49,29 +49,52 @@ function countAdvertised(payload: string): number {
     .filter(Boolean).length;
 }
 
+let emitted = false;
+
+function emitOnce(context: string): void {
+  if (emitted) return;
+  emitted = true;
+  emitContext(context);
+}
+
+function emitEmptyOnce(): void {
+  if (emitted) return;
+  emitted = true;
+  emitEmpty();
+}
+
 async function main(): Promise<void> {
   const vaultPath = resolveVaultPath(process.argv.slice(2));
   const budget = Number(process.env.CAIRN_BUDGET ?? DEFAULT_BUDGET);
 
   if (!existsSync(vaultPath)) {
-    emitEmpty();
+    emitEmptyOnce();
     return;
   }
 
-  const mode = resolveInjectMode(vaultPath, process.env.CAIRN_INJECT_MODE);
-
-  let context: string;
-  let advertised = 0;
-  if (mode === "off") {
-    context = "";
-  } else if (mode === "lazy") {
-    context = buildPointerPayload({ vaultPath });
-    advertised = countAdvertised(context);
-  } else {
-    context = buildEagerContext({ vaultPath, budget });
+  let mode: ReturnType<typeof resolveInjectMode>;
+  try {
+    mode = resolveInjectMode(vaultPath, process.env.CAIRN_INJECT_MODE);
+  } catch {
+    mode = "eager";
   }
 
-  emitContext(context);
+  let context = "";
+  let advertised = 0;
+  try {
+    if (mode === "off") {
+      context = "";
+    } else if (mode === "lazy") {
+      context = buildPointerPayload({ vaultPath });
+      advertised = countAdvertised(context);
+    } else {
+      context = buildEagerContext({ vaultPath, budget });
+    }
+  } catch {
+    context = "";
+  }
+
+  emitOnce(context);
 
   try {
     await appendInjectLog(vaultPath, {
@@ -87,6 +110,6 @@ async function main(): Promise<void> {
 }
 
 main().catch(() => {
-  emitEmpty();
+  emitEmptyOnce();
   process.exit(0);
 });

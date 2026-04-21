@@ -24,19 +24,17 @@ export default defineCommand({
     if (existsSync(indexPath)) {
       const body = readFileSync(indexPath, "utf-8");
       const lines = body.split("\n");
-      const headingText = lines
-        .map((line, i) => ({ line, i }))
-        .filter(({ line }) => /^##\s+/.test(line))
-        .map(({ line }) => line.replace(/^##\s+/, "").trim())
-        .filter(Boolean)
-        .join("\n");
-
-      if (headingText) {
+      for (let i = 0; i < lines.length; i++) {
+        const match = /^##\s+(.+?)\s*$/.exec(lines[i]!);
+        if (!match) continue;
+        const heading = match[1]!.trim();
+        if (!heading) continue;
+        const lineNumber = i + 1;
         chunks.push({
           source: "index.md",
-          line_range: [1, lines.length],
+          line_range: [lineNumber, lineNumber],
           curation: "curated",
-          text: headingText,
+          text: heading,
         });
       }
     }
