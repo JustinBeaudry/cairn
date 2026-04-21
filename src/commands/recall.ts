@@ -2,7 +2,8 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { defineCommand } from "citty";
 import { resolveVaultPath } from "../lib/vault";
-import { buildEnvelope, emitEnvelope, type EnvelopeChunk } from "../lib/envelope";
+import { buildEnvelope, writeEnvelope, type EnvelopeChunk } from "../lib/envelope";
+import { appendAccessLog } from "../lib/access-log";
 
 const MAX_MATCHES = 20;
 const CONTEXT_LINES = 3;
@@ -47,7 +48,7 @@ export default defineCommand({
     query: { type: "positional", description: "Search query", required: true },
     vaultPath: { type: "string", description: "Path to the vault directory", alias: ["p"] },
   },
-  run({ args }) {
+  async run({ args }) {
     const vaultPath = args.vaultPath ?? resolveVaultPath(process.cwd());
 
     if (!existsSync(vaultPath)) {
@@ -89,6 +90,20 @@ export default defineCommand({
           }
         : { trust: "curated" as const, source_scope: "wiki" as const };
 
-    emitEnvelope(buildEnvelope({ policy, chunks }));
+    const wire = writeEnvelope(buildEnvelope({ policy, chunks }));
+    process.stdout.write(wire);
+
+    try {
+      await appendAccessLog({
+        vaultPath,
+        command: "recall",
+        query,
+        pages_returned: chunks.length,
+        bytes_returned: new TextEncoder().encode(wire).length,
+        exit_code: 0,
+      });
+    } catch {
+      // logging must never fail the command
+    }
   },
 });

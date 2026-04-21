@@ -2,14 +2,15 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { defineCommand } from "citty";
 import { resolveVaultPath } from "../lib/vault";
-import { buildEnvelope, emitEnvelope, type EnvelopeChunk } from "../lib/envelope";
+import { buildEnvelope, writeEnvelope, type EnvelopeChunk } from "../lib/envelope";
+import { appendAccessLog } from "../lib/access-log";
 
 export default defineCommand({
   meta: { name: "list-topics", description: "List curated topic headings from the vault index" },
   args: {
     vaultPath: { type: "string", description: "Path to the vault directory", alias: ["p"] },
   },
-  run({ args }) {
+  async run({ args }) {
     const vaultPath = args.vaultPath ?? resolveVaultPath(process.cwd());
 
     if (!existsSync(vaultPath)) {
@@ -40,11 +41,25 @@ export default defineCommand({
       }
     }
 
-    emitEnvelope(
+    const wire = writeEnvelope(
       buildEnvelope({
         policy: { trust: "curated", source_scope: "wiki" },
         chunks,
       })
     );
+    process.stdout.write(wire);
+
+    try {
+      await appendAccessLog({
+        vaultPath,
+        command: "list-topics",
+        query: "",
+        pages_returned: chunks.length,
+        bytes_returned: new TextEncoder().encode(wire).length,
+        exit_code: 0,
+      });
+    } catch {
+      // logging must never fail the command
+    }
   },
 });

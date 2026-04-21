@@ -2,7 +2,8 @@ import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { isAbsolute, join, resolve } from "node:path";
 import { defineCommand } from "citty";
 import { resolveVaultPath } from "../lib/vault";
-import { buildEnvelope, emitEnvelope } from "../lib/envelope";
+import { buildEnvelope, writeEnvelope } from "../lib/envelope";
+import { appendAccessLog } from "../lib/access-log";
 
 function normalizePageName(page: string): string {
   return page.endsWith(".md") ? page : `${page}.md`;
@@ -20,7 +21,7 @@ export default defineCommand({
     page: { type: "positional", description: "Wiki page name (without path)", required: true },
     vaultPath: { type: "string", description: "Path to the vault directory", alias: ["p"] },
   },
-  run({ args }) {
+  async run({ args }) {
     const vaultPath = args.vaultPath ?? resolveVaultPath(process.cwd());
 
     if (!existsSync(vaultPath)) {
@@ -52,7 +53,7 @@ export default defineCommand({
 
     const body = readFileSync(realTarget, "utf-8");
     const lines = body.split("\n");
-    emitEnvelope(
+    const wire = writeEnvelope(
       buildEnvelope({
         policy: { trust: "curated", source_scope: "wiki" },
         chunks: [
@@ -65,5 +66,19 @@ export default defineCommand({
         ],
       })
     );
+    process.stdout.write(wire);
+
+    try {
+      await appendAccessLog({
+        vaultPath,
+        command: "get",
+        query: pageArg,
+        pages_returned: 1,
+        bytes_returned: new TextEncoder().encode(wire).length,
+        exit_code: 0,
+      });
+    } catch {
+      // logging must never fail the command
+    }
   },
 });
