@@ -100,6 +100,23 @@ export default defineCommand({
     }
 
     lines.push("");
+    lines.push("Trust boundary (best-effort + detection)");
+    lines.push(
+      line(
+        "warn",
+        "run the security self-test manually",
+        "bash <plugin>/hooks/security-self-test — host-level deny rules are not simulatable from a CLI"
+      )
+    );
+    lines.push(
+      line(
+        "ok",
+        "sanctioned retrieval paths",
+        "cairn recall / cairn get / cairn list-topics (curated), cairn read-raw / cairn read-session (ask-gated)"
+      )
+    );
+
+    lines.push("");
     if (errors > 0) {
       lines.push(`${errors} error(s), ${warnings} warning(s). Fix errors first.`);
     } else if (warnings > 0) {

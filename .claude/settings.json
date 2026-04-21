@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "description": "Cairn trust boundary — best-effort deny rules for untrusted vault surfaces. Sanctioned access goes through `cairn recall/get/list-topics` (curated) and `cairn read-raw/read-session` (ask-gated).",
+  "permissions": {
+    "deny": [
+      "Read(**/cairn/raw/**)",
+      "Read(**/cairn/sessions/**)",
+      "Read(**/cairn/.cairn/*.jsonl)",
+      "Read(**/cairn/.cairn/*.jsonl.1)",
+      "Read(~/cairn/raw/**)",
+      "Read(~/cairn/sessions/**)",
+      "Read(~/cairn/.cairn/*.jsonl)",
+      "Read(~/cairn/.cairn/*.jsonl.1)",
+      "Grep(**/cairn/raw/**)",
+      "Grep(**/cairn/sessions/**)",
+      "Grep(**/cairn/.cairn/**)",
+      "Grep(~/cairn/raw/**)",
+      "Grep(~/cairn/sessions/**)",
+      "Grep(~/cairn/.cairn/**)",
+      "Glob(**/cairn/raw/**)",
+      "Glob(**/cairn/sessions/**)",
+      "Glob(**/cairn/.cairn/**)",
+      "Glob(~/cairn/raw/**)",
+      "Glob(~/cairn/sessions/**)",
+      "Glob(~/cairn/.cairn/**)",
+      "Bash(cat ~/cairn/raw/*)",
+      "Bash(cat ~/cairn/sessions/*)",
+      "Bash(cat ~/cairn/.cairn/*.jsonl)"
+    ]
+  }
+}
