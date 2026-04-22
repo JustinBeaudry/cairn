@@ -1,0 +1,948 @@
+You are the Cairn session summarizer. Write a structured session summary in markdown.
+
+OUTPUT FORMAT — produce EXACTLY this, nothing else:
+
+---
+session_id: "2026-04-21T17:18:50Z"
+status: completed
+extracted: false
+files_changed: []
+decisions: []
+open_threads: []
+tags: []
+entire_checkpoint: "18e6907e15cf"
+---
+
+## Summary
+2-4 sentences summarizing what happened in this session.
+
+## Extraction Candidates
+- **<name>** (<type>) — <why it's worth keeping>
+
+RULES:
+1. Frontmatter fields files_changed, decisions, open_threads, and tags should be populated from the conversation. Use YAML list syntax.
+2. files_changed entries: {path: "<path>", action: "created|modified|deleted"}
+3. decisions entries: {choice: "<what>", reason: "<why>"}
+4. Extraction candidate types: concept, entity, source-summary, comparison, overview.
+5. Output ONLY the markdown. No commentary, no code fences wrapping the whole output.
+6. If the session is trivial (quick question, no real work), still produce the format but keep Summary to one sentence and Extraction Candidates to 'None.'
+
+SESSION TRANSCRIPT:
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Branch no match Plane convention. Need issue ID to track time. Which Plane issue? (e.g., `PROJ-123`) Or skip tracking?
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Plan read. Big: 6 units, trust boundary + CLI + hooks + settings + docs. Need codebase recon before clarify.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Plan big. Many cross-cuts. Before dispatch, need clarity on 4 things:
+
+**1. Branch state.** Current branch `feat/session-capture-manifest` has WIP from *different* plan (session-capture-manifest, in-flight). Plan says "must compose with" that work but trust-boundary is separate PR. Options:
+- (a) Commit/land session-manifest WIP first, then new branch off main for this plan
+- (b) New branch off current branch (builds on its libs, but PR review muddled)
+- (c) Worktree off main (clean isolation)
+
+Which?
+
+**2. Default inject mode.** Plan Unit 1: "eager for existing installs, lazy for fresh". But fresh-detection logic deferred to Unit 5. Two reads:
+- (a) Default `eager`, require explicit `CAIRN_INJECT_MODE=lazy` or `config.json` opt-in until Unit 5 `cairn init` writes `lazy` for new installs
+- (b) Add detection heuristic now (e.g., absence of `.cairn/` control dir = fresh)
+
+Prefer (a) — simpler, preserves current behavior, Unit 5 flips new installs.
+
+**3. Hook language.** Current `hooks/inject` is Bash. Plan allows either Bash or TS. TS wins for: R8 envelope write consistency (shared schema helper w/ CLI), `withLogLock` reuse, structured JSON escape w/o hand-rolled escaping. Bash wins for: zero runtime overhead, no bun cold start on every SessionStart.
+
+Rewrite to TS, or extend Bash?
+
+**4. `.claude/settings.json` location.** Unit 5 creates it. Two scopes:
+- (a) Plugin root `.claude/settings.json` — ships with plugin, applies wherever user installs
+- (b) User project `.claude/settings.json` — written by `cairn init` into consuming repo
+
+Plan unclear. Plugin.json exists so this *is* a Claude Code plugin. Guess: plugin ships rules; `cairn init` may also write project-scoped overrides. Confirm?
+
+**Execution plan.** Serial subagents. Parallel unsafe — Units 2/3/4 all modify `src/cli.ts`. Dep chain: 1 → 2 → 3 → 4 → 5 → 6.
+
+Answer 1–4 so I can proceed.
+## Assistant
+
+## Assistant
+My answers:
+
+1. **Branch**: New branch off current `feat/session-capture-manifest`. Trust-boundary plan depends on `src/lib/excerpt.ts` and `src/lib/manifest.ts` which live there. Implicit PR stack: session-manifest lands first, then this. Name: `feat/vault-trust-boundary`.
+
+2. **Inject mode default**: `eager` (preserve current). Opt-in via `CAIRN_INJECT_MODE=lazy` or `<vault>/.cairn/config.json`. Unit 5 `cairn init` writes `lazy` for fresh installs.
+
+3. **Hook language**: Rewrite to TS. Shared envelope schema + `withLogLock` + structured JSON escape all live in TS lib. Bun cold start acceptable (already required for CLI). Keep `run-hook.cmd` wrapper if present for cross-platform.
+
+4. **`.claude/settings.json`**: Plugin root ships default deny rules. Project-scoped overrides deferred (not critical path).
+
+Loading TaskCreate + continuing.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Branch has session-manifest WIP I accidentally carried. Needs to stay on its own branch. Fixing.
+## Assistant
+
+## Assistant
+
+## Assistant
+Problem: both branches share working tree, so session-manifest WIP now shows on trust-boundary too. Clean split needs either:
+- (a) Commit session-manifest WIP on its branch (makes trust-boundary definitionally clean going forward). Needs your OK — it's your in-flight work, not mine.
+- (b) Worktree off clean HEAD. Moving there isolates working trees.
+
+Which? Or I can just proceed on trust-boundary and be careful to stage only my files when committing.
+## Assistant
+
+## Assistant
+Going with worktree. Isolates trust-boundary working tree from session-manifest WIP.
+## Assistant
+
+## Assistant
+
+## Assistant
+Worktree ready. Plan + brainstorm docs are untracked on session-manifest — copying to worktree and committing them as trust-boundary's first commit.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+API Error: {"type":"error","error":{"details":null,"type":"overloaded_error","message":"Overloaded"},"request_id":"REDACTED"}
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Have context. Now TDD for Unit 1 — writing tests for new inject modes first.
+## Assistant
+
+## Assistant
+
+## Assistant
+Verify tests fail (Red).
+## Assistant
+
+## Assistant
+
+## Assistant
+10 fail, 6 pass. Red confirmed. Building TS implementation.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Unit 1 tests green. Verify existing inject.test.ts still passes + full suite.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Pre-existing `entire` detection failures unrelated to my work. Unit 1 complete. Committing.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Unit 2 now. Reading existing patterns.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Writing Unit 2 tests first.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Unit 2 green. Full suite sanity check.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Lint clean. Committing Unit 2.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Unit 3 now. Writing tests first.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Unit 3 green. Full suite + lint.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Unit 4 tests first.
+## Assistant
+
+## Assistant
+Now shared log writer + wire into commands.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Unit 5 now. Writing tests first.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Still just pre-existing `entire` failures. Commit Unit 5.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Updating docs now.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Now docs-contract tests.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Checking remote + PR base state.
+## Assistant
+
+## Assistant
+
+## Assistant
+All 6 units shipped. Pre-PR summary:
+
+**Branch:** `feat/vault-trust-boundary` (local, worktree at `/Users/justinbeaudry/Projects/cairn-trust-boundary`). 7 commits on top of `feat/session-capture-manifest` HEAD `bae5693`.
+
+**Commits:**
+- `a8d72e4` docs: planning artifacts
+- `1b15231` Unit 1: inject modes + pointer payload
+- `32dc137` Unit 2: recall/get/list-topics CLI + envelope
+- `5d20d7d` Unit 3: ask-gated read-raw/read-session
+- `2d28e37` Unit 4: minimized, rotated access log
+- `6828620` Unit 5: `.claude/settings.json` + R2a self-test
+- `a64ee78` Unit 6: docs + skills alignment
+
+**Tests:** 142 pass / 2 fail (pre-existing `entire` detection, unrelated). 58 new tests added across 7 new test files.
+
+**Lint:** clean (`bunx tsc --noEmit`).
+
+**PR stacking blocker:** `feat/session-capture-manifest` is local-only — has unpushed foundation commit `bae5693` plus uncommitted WIP in the main worktree. My branch depends on `bae5693`. Options:
+
+- (a) Push nothing yet. Hold until session-manifest PR lands, then rebase + push.
+- (b) Push `feat/vault-trust-boundary` to remote for backup/review but don't open PR.
+- (c) Push session-manifest's committed tip (`bae5693`, no WIP), then push + PR trust-boundary as stacked on it.
+
+(a) cleanest. (c) enables earlier review but requires pushing someone else's branch. Both need your call — push/PR affects shared state.
+
+Also want me to run `/ce:review` on the diff before PR? Worth catching issues before shared review.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Running ce:review in interactive mode. Base = `bae5693`, plan = vault-trust-boundary plan doc. Gathering scope.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Scope: 3238-line diff across 37 files. No repo CLAUDE.md/AGENTS.md. Generating run ID + dispatching reviewers in parallel.
+## Assistant
+
+## Assistant
+
+## Assistant
+Dispatching 12 reviewers in parallel. Team: 6 always-on + security + api-contract + reliability + adversarial + cli-readiness + kieran-typescript. Intent captured.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+All 12 reviewers returned. Synthesizing.
+## Assistant
+
+## Assistant
+# Code Review — `feat/vault-trust-boundary`
+
+**Scope:** bae5693..HEAD (7 commits, 37 files, 3238 diff lines)
+**Intent:** Implement vault trust boundary + lazy retrieval plan — pointer injection, sanctioned retrieval CLI, ask-gated raw/session readers, minimized+rotated logs, deny rules + R2a self-test, docs alignment.
+**Mode:** Interactive (pre-PR)
+**Run:** `20260421-124829-1227978d` (artifacts in `.context/compound-engineering/ce-review/`)
+**Team:** correctness, testing, maintainability, project-standards, agent-native, learnings, security, api-contract, reliability, adversarial, cli-readiness, kieran-typescript (12 reviewers)
+
+## Findings
+
+### P0 — Critical (blocks merge)
+
+| # | File:Line | Issue | Reviewers | Conf | Route |
+|---|-----------|-------|-----------|------|-------|
+| 1 | src/commands/recall.ts:12-23 | `walkWiki` uses `statSync` (follows symlinks), no realpath containment. A symlink in `wiki/` laundering `sessions/`, `raw/`, or `/etc/passwd` gets emitted as `curation: "curated"`. Directly breaks the trust-boundary's core guarantee. | correctness, security, adversarial | 0.93 | gated_auto |
+| 2 | src/lib/sensitive-read.ts:59-96 | TOCTOU: attacker swaps target to a symlink between `realpathSync` and `readFileSync`. Read-raw excerpt labeled `raw/notes.md` can contain `/etc/passwd`. Trust model assumes vault is adversary-writable. Fix: `open(O_NOFOLLOW)` + `fstat` + `read(fd)`. | correctness, security, adversarial | 0.85 | gated_auto |
+| 3 | src/lib/sensitive-read.ts:93-98 | `--lines=-1` (via `Number()`) bypasses the bounded-excerpt guarantee. `Math.min(-1, 500) = -1`; `slice(0, -1)` returns all-but-last. 500-line raw file yields 499-line "excerpt" with `clamped=false`. Plan promises bounded excerpts. | adversarial, kieran-ts, cli-readiness | 0.95 | gated_auto |
+
+### P1 — High
+
+| # | File:Line | Issue | Reviewers | Conf | Route |
+|---|-----------|-------|-----------|------|-------|
+| 4 | .claude/settings.json:6-28 | Deny globs hardcoded to `**/cairn/**` and `~/cairn/**`. Users with `CAIRN_VAULT=/opt/notes` have no deny coverage — only TS ask-gate protects. No detection mechanism. | security, adversarial, project-standards, agent-native | 0.88 | manual |
+| 5 | .claude/settings.json | Bash deny covers `cat` only on 3 paths. `head`/`tail`/`less`/`grep`/`awk`/`python`/`xxd` all bypass. Absolute paths (no `~`) also bypass. | adversarial, security | 0.90 | manual |
+| 6 | src/lib/sensitive-read.ts:112-128 | `read-raw`/`read-session` — the **most sensitive commands** — emit NO access-log entries. `AccessLogEntry.command` union literally excludes them. Audit trail gap. | security, maintainability, cli-readiness, kieran-ts | 0.90 | gated_auto |
+| 7 | src/commands/read-raw.ts:24, read-session.ts:24 | `args.lines ? Number(args.lines) : undefined` — `Number('abc') = NaN`, not nullish. `Math.min(NaN, 500) = NaN`. `slice(0, NaN) = []`. Silent empty envelope, exit 0. | kieran-ts, cli-readiness | 0.91 | gated_auto |
+| 8 | src/hooks/inject.ts:52-92 | Hook can emit two JSON envelopes on late failure. `emitContext` fires, then `appendInjectLog` throws, `main().catch` fires `emitEmpty`. Claude Code consumer expects one envelope. | reliability | 0.88 | safe_auto |
+| 9 | src/lib/inject/pointer.ts:22-26, src/lib/inject/eager.ts:23-48 | `readFileSync` on index.md/context.md/sessions not wrapped. EACCES/EIO crashes hook silently, agent loses vault pointer with zero signal. | reliability | 0.90 | safe_auto |
+| 10 | src/lib/envelope.ts:51-64 | `parseEnvelope` never inspects `schema_version`; casts JSON.parse output to `Envelope` without shape validation. Future v2 silently parsed as v1; malformed payloads crash consumers. | api-contract, kieran-ts, correctness | 0.87 | safe_auto |
+| 11 | hooks/inject:6 | Bash shim execs `bun` with no fallback. If bun not on PATH (hermetic invocation, mise not sourced), exec returns 127, SessionStart silently degrades. | reliability, project-standards | 0.85 | gated_auto |
+| 12 | src/lib/sensitive-read.ts:59-68, src/commands/get.ts:38-52 | ScopeDir-is-symlink hijack: if `wiki/`, `raw/`, or `sessions/` directory itself is a symlink, containment checks never verify the scope dir is genuine. | security | 0.75 | gated_auto |
+| 13 | src/lib/inject/pointer.ts:22-46 | Lazy-mode pointer payload is free-form prose. `src/hooks/inject.ts:42-49` regexes its own output to count categories. Plan explicitly called out "no ad-hoc delimiter juggling". | agent-native | 0.85 | gated_auto |
+| 14 | src/lib/sensitive-read.ts:109 | `line_range` claims pre-byte-clamp range after bytes truncate mid-file. Envelope lies about which lines are actually present. | correctness | 0.88 | safe_auto |
+| 15 | src/lib/inject/modes.ts:28 | Default `inject_mode='eager'` — plan's documented behavior for *existing* installs, but nothing writes `lazy` for fresh installs. Plan Unit 1 explicitly defers this to Unit 5 but Unit 5 didn't implement it either. | api-contract | 0.78 | manual |
+| 16 | src/lib/log-writer.ts:13-19 | 2x rotation cycle erases prior archive — audit-trail laundering via log-fill. One archive (`.1`), overwrite on rotate. | adversarial | 0.70 | manual |
+| 17 | src/lib/access-log.ts:25-33 | `query_hash` is unkeyed sha256 truncated to 128 bits + exact `query_len` stored. Short queries brute-forceable; length reveals PII. | adversarial | 0.75 | gated_auto |
+| 18 | src/commands/recall.ts:71 | Even without the P0 symlink leak, walker labels returned chunks as `wiki/<name>` without realpath-verifying location. | correctness, security | 0.85 | gated_auto |
+
+### P2 — Moderate
+
+| # | File:Line | Issue | Reviewers | Conf | Route |
+|---|-----------|-------|-----------|------|-------|
+| 19 | src/commands/list-topics.ts:37 | `line_range: [1, lines.length]` lies — returned chunk is heading-only synthesis, not a contiguous slice. | correctness, maintainability, api-contract | 0.92 | safe_auto |
+| 20 | src/lib/envelope.ts:12-18 | `EnvelopePolicy` catch-all `[key: string]: unknown` exists solely to smuggle `clamped`. Declare it explicitly; tighten shape. | kieran-ts, project-standards | 0.75 | safe_auto |
+| 21 | src/lib/sensitive-read.ts:110 | Non-exhaustive `scope === "raw" ? ...` mapping. Adding a third scope silently mis-labels. Use exhaustive switch + `never`. | kieran-ts | 0.80 | safe_auto |
+| 22 | src/lib/log-writer.ts:13-38 | Rotation failure inside lock aborts append. `renameSync` to pre-existing directory throws; outer `catch {}` swallows whole append. Separate rotation from append. | reliability | 0.82 | safe_auto |
+| 23 | src/lib/sensitive-read.ts:37-45 | readline `rl.question` has no handler for stdin close or SIGINT. `answer.trim()` can throw on undefined. | reliability | 0.80 | safe_auto |
+| 24 | src/lib/lockfile.ts:22-26 | `staleMs=5 min` + `retries=50×100ms=5s` too generous for interactive CLI logging. | reliability | 0.80 | manual |
+| 25 | hooks/security-self-test, src/hooks/inject.ts, src/lib/inject/eager.ts | Neither hook applies realpath containment to vault subdirs. Symlinked `sessions/` → `~/.ssh` leaks those contents into every SessionStart context. | adversarial | 0.70 | gated_auto |
+| 26 | src/commands/{recall,get,list-topics,read-raw,read-session}.ts | All errors exit 1. Agents cannot programmatically distinguish `vault-not-found` from `approval-required` from `page-not-found`. | cli-readiness, api-contract | 0.85 | manual |
+| 27 | src/commands/recall.ts, get.ts, list-topics.ts | Duplicated `writeEnvelope → stdout.write → byte-count → try/catch appendAccessLog` block in 3 places. Third occurrence = extract to `emitAndLog()` helper. | maintainability | 0.85 | safe_auto |
+| 28 | src/lib/sensitive-read.ts:27-31 + src/commands/get.ts:12-16 | `isWithin` duplicated verbatim. Trust-boundary primitive; drift between copies = security bug. Lift to `src/lib/path-safety.ts`. | maintainability | 0.92 | safe_auto |
+| 29 | src/lib/inject/modes.ts:14-31 | No CLI affordance to switch inject mode. `cairn config set inject_mode=lazy` missing. Agents can't read back what they wrote (deny rules block). | agent-native | 0.80 | manual |
+| 30 | hooks/security-self-test:18 | TOKEN = seconds + 16 bits of `$RANDOM`. Collision-capable. Use `openssl rand -hex 16` or `/dev/urandom`. | security, adversarial | 0.85 | safe_auto |
+| 31 | hooks/security-self-test | Output is prose-only; no `--format=json` option. Agent can't parse probe list systematically. | agent-native | 0.88 | manual |
+| 32 | src/commands/{recall,get,list-topics}.ts | `process.exit(1)` before `appendAccessLog` — failures (traversal, page-not-found, approval-denied) never audited despite being precisely the events that warrant an audit trail. | kieran-ts | 0.72 | gated_auto |
+
+### P3 — Low
+
+| # | File:Line | Issue | Reviewers | Conf |
+|---|-----------|-------|-----------|------|
+| 33 | src/commands/recall.ts:16 | `walkWiki` can infinite-loop on symlink cycle; no visited-realpath Set. | correctness | 0.82 |
+| 34 | src/lib/sensitive-read.ts:51, src/commands/get.ts:33 | `filename.includes("..")` over-rejects `foo..bar.md`. Use `split("/").includes("..")`. | correctness | 0.90 |
+| 35 | src/lib/sensitive-read.ts:30 | `isWithin` uses hardcoded `/` separator; Windows mismatch. Use `path.relative`. | correctness | 0.75 |
+| 36 | src/commands/recall.ts:27 | `grepFile` silently drops wiki files > 256KB. Surface as `policy.warnings`. | correctness | 0.95 |
+| 37 | src/lib/log-writer.ts:18 | `renameSync` not cross-platform safe when archive exists (Windows busy). | correctness | 0.70 |
+| 38 | src/commands/doctor.ts | No `--format=json` for agents. Glyph-prefixed prose only. | agent-native | 0.78 |
+| 39 | src/lib/inject/{modes,pointer,eager,log}.ts | 4 files / 159 lines / 1 consumer — premature package. `byteLength` declared twice. | maintainability | 0.68 |
+| 40 | hooks/inject → src/hooks/inject.ts | 4-layer indirection (hooks.json → run-hook.cmd → bash → bun → TS). Consider dispatching `.ts` directly from run-hook.cmd. | maintainability, project-standards | 0.62 |
+| 41 | src/commands/read-raw.ts, read-session.ts | `--approve` description doesn't mention `CAIRN_APPROVE=1` equivalence. Documented only in error message. | cli-readiness, api-contract | 0.70 |
+
+## Coverage
+
+- Suppressed: 0 findings below 0.60 confidence (P0 at 0.50+ retained)
+- Untracked files excluded: none
+- Failed reviewers: none (all 12 returned)
+- **Testing gaps surfaced by reviewers:** symlink-in-wiki test for recall; symlink-swap race for sensitive-read; `CAIRN_VAULT` outside default globs; `--lines=-1/0/NaN/float`; envelope adversarial payloads (embedded sub-envelope, UTF-8 multi-byte); concurrent rotation race; bytes-clamp branch; direct unit tests for `log-writer.ts` and `access-log.ts`; structural (not substring) docs-contract assertions; env pollution in spawn tests (CAIRN_* leakage from host)
+
+## Learnings
+
+- `docs/solutions/` does not exist. No prior institutional learnings corpus to draw from. Worth initializing after this PR lands.
+
+## Requirements Completeness (plan: `docs/plans/2026-04-21-001-feat-vault-trust-boundary-lazy-retrieval-plan.md`, source: explicit)
+
+| Req | Status |
+|-----|--------|
+| R1–R3 trust classification + enforcement | Partially — settings.json deny rules only cover default vault paths (finding #4) |
+| R2/R2a release gate + regression detector | Met — hooks/security-self-test |
+| R4 sanctioned access API | Met |
+| R5 ask-gated reads | Met but audit-gap (finding #6) |
+| R5a untrusted→curated crossing w/ provenance | Partially — envelope has provenance but no HMAC binding chunks to nonce (finding #adv-03) |
+| R6 lazy pointer payload | Met but prose, not structured (finding #13) |
+| R7 pointer <500B | Met |
+| R8 length-prefixed envelope | Met but no version-negotiation (finding #10) |
+| R10 inject mode config | Met |
+| R12 access logs | Partially — sensitive reads missing (finding #6) |
+| R13a logs denied via Read/Grep/Glob | Met (in settings.json) |
+| R13b minimization + rotation | Met but vulnerable to 2x-rotation laundering (finding #16) |
+
+## Verdict: **Not ready**
+
+Three P0 findings break the trust-boundary's core guarantees:
+1. `recall` silently laundering sessions/raw/arbitrary paths as curated (by far the most severe)
+2. TOCTOU in sensitive-read (realistic attack given the trust model)
+3. `--lines=-1` bounded-excerpt bypass
+
+Fix order:
+1. **Before PR (P0s + critical P1s):** #1, #2, #3, #6 (access-log for sensitive reads), #7 (NaN validation), #8 (two-envelope hook bug), #9 (readFileSync try/catch), #10 (envelope schema validation), #11 (bun-missing fallback), #12 (scope-dir hijack)
+2. **Strong recommend before PR:** #4, #5 (deny patterns — at minimum, doctor warns when they don't match; Bash deny expanded), #15 (define Unit 5's plan for fresh-install lazy default or explicitly defer), #18 (walkWiki labeling)
+3. **Can defer to follow-up:** P2/P3 findings, doc polishing, agent-native enhancements (prose → JSON formats), refactoring
+
+## Policy question
+
+Most P0/P1 findings are `gated_auto` — concrete fixes exist but they change trust-boundary behavior, so I'm not applying them unilaterally. What would you like?
+
+1. **Fix the P0s + critical P1s here, then PR** (Recommended — this code is security-critical)
+2. **Review the findings, I fix a subset you approve, then PR**
+3. **Push branch as-is, address findings in PR follow-ups**
+4. **Stop — further triage needed before fixing**
+## Assistant
+
+## Assistant
+Fixing P0s + critical P1s in focused commits. Starting with path-safety (P0 #1, #2, #12, and shared helper).
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Path-safety lib green. Adding symlink-escape test for recall, then fix.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+3 failing tests (expected). Fixing recall.ts.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Now fixing sensitive-read: O_NOFOLLOW + scope-dir guard + access log + strict --lines/--bytes validation + fd-based read.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Adding tests for new guards: clamp validation, access-log emission.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+`--lines -1` is being parsed by citty as a separate flag. Using `=` syntax.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+All 19 green. Now harmonizing get.ts with shared path-safety lib.
+## Assistant
+
+## Assistant
+
+## Assistant
+168 pass. Same 2 pre-existing entire fails. Committing fix 1.
+## Assistant
+
+## Assistant
+
+## Assistant
+Now fixing inject resilience + envelope validation + bun fallback (P1 #8–11).
+## Assistant
+
+## Assistant
+
+## Assistant
+Now inject hardening (P1 #8, #9) and bash shim fallback (P1 #11).
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Also fixing list-topics line_range lie (P2 #19).
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+173 pass. Committing fix 2.
+## Assistant
+
+## Assistant
+
+## Assistant
+Now fixing deny patterns + doctor detection (P1 #4, #5) + fresh-install lazy default (P1 #15).
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Now fresh-install lazy default in init (P1 #15).
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Adding tests for new behaviors.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+Lint clean. Committing fix 3.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+# Fixes applied — summary
+
+**Final: 179 pass / 2 fail (pre-existing `entire` detection, unrelated).** Lint clean.
+
+10 commits total (7 implementation + 3 review-fix):
+
+| Commit | Addresses |
+|--------|-----------|
+| `6e8353d` fix(security): recall symlink laundering + sensitive-read hardening | P0 #1, #2, #3 + P1 #6, #7, #12, #14, #18, #28, #34 |
+| `2b0f27e` fix(inject,envelope): resilience + envelope validation | P1 #8, #9, #10, #11 + P2 #19 |
+| `09b0631` fix(security): deny expansion + doctor warn + lazy default | P1 #4, #5, #15 |
+
+## What's fixed
+
+**P0 (all 3):**
+- Recall no longer follows symlinks in `wiki/` — cannot launder `sessions/`/`raw/`/`/etc/passwd` as curated
+- Sensitive-read opens with `O_NOFOLLOW` + `fstat` + read-from-fd — TOCTOU window closed
+- `--lines=-1`/`0`/NaN/float now exits non-zero with "invalid --lines: must be a positive integer"
+
+**P1 (10 of 15):**
+- Audit log now covers read-raw/read-session (filename hashed, never plaintext)
+- Envelope parser validates schema_version, nonce shape, chunks array, curation enum — future `v2` gets `EnvelopeVersionError`
+- Inject hook: `emitted` flag prevents two envelopes; readFileSync errors in pointer/eager no longer crash
+- Bash shim probes for bun; falls back to empty envelope if missing
+- Scope-dir hijack closed: `wiki/`/`raw/`/`sessions/` must be a real directory inside vault
+- `.claude/settings.json` now denies ~19 Bash reader tools (was just `cat`)
+- `doctor` warns when resolved vault path escapes default deny globs
+- `scaffoldVault` writes `{inject_mode: "lazy"}` on fresh installs
+- `list-topics` emits one chunk per heading with real line numbers
+
+## Deferred to follow-up (noted but not fixed here)
+
+- **P1 #13** pointer payload prose → structured envelope (agent-native improvement, not security)
+- **P1 #16** rotation cascade (keep N archives; requires retention policy decision)
+- **P1 #17** HMAC for query_hash (needs per-vault key management)
+- **All P2/P3** (duplicated helpers, readline SIGINT handling, doctor `--format=json`, agent-native enhancements, lockfile stale tuning, etc.)
+
+## Ready for PR
+
+Branch state: 10 commits on top of `feat/session-capture-manifest` HEAD (implicit dependency on session-manifest landing first).
+
+Push + PR options:
+1. **Push + open PR now** (stacked on session-manifest — merge order: session-manifest first, then this)
+2. **Push branch only** (no PR yet; wait for session-manifest landing)
+3. **Hold** (keep local, address more follow-up items first)
+
+Pick one.
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+## Assistant
+
+ENTIRE CHECKPOINT CONTEXT (codebase state at this session's checkpoint):
+
+Checkpoint: 18e6907e15cf
+Session: e4c03b73-e3f3-40c5-bc7d-c3066903e7a7
+Created: 2026-04-20 04:05:03
+Author: JustinBeaudry <me@justinbeaudry.dev>
+Tokens: 9328018
+
+Commits: (1)
+  bae5693 2026-04-20 refactor(sessions): add Unit 1 foundation libs for manifest pipeline
+
+Intent: /compound-engineering:ce-debug
+Outcome: (not generated)
