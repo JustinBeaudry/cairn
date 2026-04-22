@@ -1,0 +1,27 @@
+/ce-brainstorm What can we improve with this plugin and how can we make sure it doesn't:
+
+- bloat context
+- add irrelevant context
+- allow reading raw files by models (unless during refinement)
+
+and any other indeas you think that will help
+
+---
+
+/document-review
+
+---
+
+continue
+
+---
+
+refien again
+
+---
+
+lets on more review pass, best effort + detection feels good enough
+
+---
+
+/ce-plan
