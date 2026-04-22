@@ -1,5 +1,10 @@
 # Entire Session Integration Plan
 
+> Superseded by `docs/plans/2026-04-19-001-refactor-session-capture-manifest-plan.md`.
+> The Stop hook no longer summarizes with `jq` + `claude -p`; it writes a
+> session manifest via `cairn capture-session`, and `cairn summarize` performs
+> lazy summarization on read.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** When a vault's project has Entire enabled, Cairn's session-summary hook produces richer summaries by reading Entire's checkpoint/session data instead of raw JSONL transcripts.
