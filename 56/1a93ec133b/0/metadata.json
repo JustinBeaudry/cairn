@@ -1,0 +1,61 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "561a93ec133b",
+  "session_id": "00e9cb14-e027-456d-8926-d5de49566bba",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-22T00:48:14.415471Z",
+  "branch": "feat/session-capture-manifest",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "skills/cairn/SKILL.md",
+    "skills/extract/SKILL.md",
+    "skills/refine/SKILL.md",
+    "templates/CAIRN.md"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "8ef06aa74469",
+  "token_usage": {
+    "input_tokens": 9,
+    "cache_creation_tokens": 27899,
+    "cache_read_tokens": 100402,
+    "output_tokens": 5325,
+    "api_call_count": 1
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-22T00:48:14.367073Z",
+    "agent_lines": 36,
+    "agent_removed": 10,
+    "human_added": 2509,
+    "human_modified": 41,
+    "human_removed": 0,
+    "total_committed": 2559,
+    "total_lines_changed": 2992,
+    "agent_percentage": 1.537433155080214,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 28,
+      "user_lines_removed": 13,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        "skills/cairn/SKILL.md": 3,
+        "skills/extract/SKILL.md": 1,
+        "skills/refine/SKILL.md": 8,
+        "templates/CAIRN.md": 16
+      },
+      "user_removed_per_file": {
+        "skills/cairn/SKILL.md": 2,
+        "skills/extract/SKILL.md": 1,
+        "skills/refine/SKILL.md": 2,
+        "templates/CAIRN.md": 8
+      }
+    }
+  ]
+}
