@@ -31,7 +31,7 @@ function makeVault(): Env {
   mkdirSync(join(vault, ".cairn"), { recursive: true });
   writeFileSync(
     join(vault, "log.md"),
-    "# Vault Log\n\n## [2026-04-01] session | old branch | 1 files | deadbeef\n"
+    "# Vault Log\n\n## [2026-04-01] session | old branch | 1 files | deadbeef\n## [2026-04-01] session | other branch | 2 files | cafebabe\n"
   );
   return { root, vault };
 }
@@ -148,7 +148,9 @@ describe("cairn migrate-sessions", () => {
     expect(manifest.entire_checkpoint).toBe("abc123");
     expect(summary.data.user_edited).toBe(true);
     expect(summary.body).toContain("Legacy summary body.");
-    expect(readFileSync(join(env.vault, "log.md"), "utf-8")).not.toContain("deadbeef");
+    const log = readFileSync(join(env.vault, "log.md"), "utf-8");
+    expect(log).not.toContain("deadbeef");
+    expect(log).toContain("cafebabe");
   });
 
   it("is idempotent after a successful migration", async () => {

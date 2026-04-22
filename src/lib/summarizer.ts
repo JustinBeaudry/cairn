@@ -60,13 +60,13 @@ export async function summarizeSession(
   const cached = readCachedSummary(summaryPath);
   if (cached && !options.force) {
     if (cached.data.user_edited === true) {
-      return cachedResult(summaryPath, cached.data.degraded === true, cached.data.chunked === true);
+      return cachedResult(summaryPath, cached.data);
     }
     if (cached.data.manifest_hash === manifestHash) {
-      return cachedResult(summaryPath, cached.data.degraded === true, cached.data.chunked === true);
+      return cachedResult(summaryPath, cached.data);
     }
     if (manifest.transcript_path === null && cached.body.trim().length > 0) {
-      return cachedResult(summaryPath, cached.data.degraded === true, cached.data.chunked === true);
+      return cachedResult(summaryPath, cached.data);
     }
   }
 
@@ -109,7 +109,15 @@ export async function summarizeAll(
   const sessionsDir = join(vaultPath, "sessions");
   const manifests = readdirSync(sessionsDir)
     .filter((entry) => entry.endsWith(".md"))
-    .map((entry) => join(sessionsDir, entry));
+    .flatMap((entry) => {
+      const path = join(sessionsDir, entry);
+      try {
+        readManifest(path);
+        return [path];
+      } catch {
+        return [];
+      }
+    });
   const results: SummarizeResult[] = [];
 
   for (let i = 0; i < manifests.length; i++) {
@@ -183,8 +191,14 @@ function readCachedSummary(path: string): ReturnType<typeof readSummaryFrontmatt
   }
 }
 
-function cachedResult(path: string, degraded: boolean, chunked: boolean): SummarizeResult {
-  return { path, cached: true, degraded, chunked, truncated_turns: 0 };
+function cachedResult(path: string, data: SessionSummaryFrontmatter): SummarizeResult {
+  return {
+    path,
+    cached: true,
+    degraded: data.degraded === true,
+    chunked: data.chunked === true,
+    truncated_turns: data.truncated_turns ?? 0,
+  };
 }
 
 async function loadSourceText(manifest: SessionManifest): Promise<SourceText> {

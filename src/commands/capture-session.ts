@@ -16,6 +16,7 @@ import {
   type SessionManifest,
 } from "../lib/manifest";
 import { getHeadCheckpointId } from "../lib/entire";
+import type { FileChange } from "../lib/git";
 
 interface HookInput {
   session_id?: unknown;
@@ -92,10 +93,7 @@ async function buildManifest(
   const gitHead = await headCommit(process.cwd());
   const branch = await currentBranch(process.cwd());
   const entireCheckpoint = await getHeadCheckpointId(process.cwd());
-  const filesChanged =
-    entireCheckpoint && /^[0-9a-f]{40}$/i.test(entireCheckpoint)
-      ? await filesChangedSince(entireCheckpoint, process.cwd())
-      : await uncommittedChanges(process.cwd());
+  const filesChanged = await filesChangedForCapture(entireCheckpoint, process.cwd());
 
   const manifest: SessionManifest = {
     session_id: sessionId,
@@ -179,12 +177,28 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function filesChangedForCapture(
+  entireCheckpoint: string | null,
+  cwd: string
+): Promise<FileChange[]> {
+  if (entireCheckpoint && /^[0-9a-f]{7,40}$/i.test(entireCheckpoint)) {
+    return filesChangedSince(entireCheckpoint, cwd);
+  }
+  return uncommittedChanges(cwd);
+}
+
 function manifestExistsForSession(vaultPath: string, sessionId: string): boolean {
   const sessionsDir = join(vaultPath, "sessions");
   if (!existsSync(sessionsDir)) return false;
 
-  for (const entry of readdirSync(sessionsDir, { withFileTypes: true })) {
-    if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
+  const entries = readdirSync(sessionsDir, { withFileTypes: true }).filter(
+    (entry) => entry.isFile() && entry.name.endsWith(".md")
+  );
+  const suffix = manifestFilenameSuffix(sessionId);
+  const candidates = suffix ? entries.filter((entry) => entry.name.endsWith(suffix)) : entries;
+  if (suffix && candidates.length === 0) return false;
+
+  for (const entry of candidates) {
     try {
       const manifest = readManifest(join(sessionsDir, entry.name));
       if (manifest.session_id === sessionId) return true;
@@ -193,6 +207,14 @@ function manifestExistsForSession(vaultPath: string, sessionId: string): boolean
     }
   }
   return false;
+}
+
+function manifestFilenameSuffix(sessionId: string): string | null {
+  try {
+    return `-${shortSessionId(sessionId)}.md`;
+  } catch {
+    return null;
+  }
 }
 
 async function appendSessionLog(

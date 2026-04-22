@@ -12,6 +12,7 @@ import {
 import { readManifest } from "../src/lib/manifest";
 
 const CLI = ["bun", join(import.meta.dir, "..", "src", "cli.ts"), "capture-session"];
+const describeGit = Bun.which("git") === null ? describe.skip : describe;
 
 interface TestEnv {
   vault: string;
@@ -92,7 +93,7 @@ function listManifests(vault: string): string[] {
   return readdirSync(join(vault, "sessions")).filter((n) => n.endsWith(".md"));
 }
 
-describe("cairn capture-session", () => {
+describeGit("cairn capture-session", () => {
   let env: TestEnv;
 
   beforeEach(async () => {
@@ -239,6 +240,31 @@ describe("cairn capture-session", () => {
     } finally {
       rmSync(noGitCwd, { recursive: true, force: true });
     }
+  });
+
+  it("uses abbreviated Entire checkpoints to report committed changes", async () => {
+    const base = await git(env.cwd, "rev-parse", "HEAD");
+    writeFileSync(join(env.cwd, "changed.txt"), "changed");
+    await git(env.cwd, "add", "changed.txt");
+    await git(
+      env.cwd,
+      "commit",
+      "-q",
+      "-m",
+      `capture\n\nEntire-Checkpoint: ${base.slice(0, 8)}`
+    );
+    const transcript = makeTranscript(env.cwd, [{ type: "human", text: "hi" }]);
+
+    const result = await runCapture(env, {
+      session_id: "99999999-9999-9999-9999-999999999999",
+      transcript_path: transcript,
+    });
+
+    expect(result.exitCode).toBe(0);
+    const [name] = listManifests(env.vault);
+    const manifest = readManifest(join(env.vault, "sessions", name!));
+    expect(manifest.entire_checkpoint).toBe(base.slice(0, 8));
+    expect(manifest.files_changed).toEqual([{ path: "changed.txt", action: "created" }]);
   });
 
   it("still writes a manifest when transcript_path is missing, with null transcript fields", async () => {

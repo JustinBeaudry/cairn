@@ -172,6 +172,34 @@ describe("cairn summarize", () => {
     expect(parsed.degraded).toBe(false);
   });
 
+  it("keeps cached truncated turn diagnostics in JSON output", async () => {
+    const manifest = readManifest(env.manifestPath);
+    const summaryPath = join(env.vault, "sessions", "summaries", basename(env.manifestPath));
+    writeSummaryFrontmatter(
+      summaryPath,
+      {
+        manifest_hash: computeManifestHash(manifest),
+        transcript_hash: manifest.transcript_hash,
+        generated_at: "2026-04-21T12:01:00.000Z",
+        chunked: true,
+        truncated_turns: 2,
+      },
+      "manual summary\n"
+    );
+
+    const result = await runCairn(env, ["summarize", "--json", env.manifestPath]);
+
+    expect(result.exitCode).toBe(0);
+    const parsed = JSON.parse(result.stdout.trim()) as {
+      cached: boolean;
+      chunked: boolean;
+      truncated_turns: number;
+    };
+    expect(parsed.cached).toBe(true);
+    expect(parsed.chunked).toBe(true);
+    expect(parsed.truncated_turns).toBe(2);
+  });
+
   it("resolves by full path, sessions-relative path, and session id prefix", async () => {
     const relative = `sessions/${basename(env.manifestPath)}`;
     const byPath = await runCairn(env, ["summarize", env.manifestPath]);
@@ -209,6 +237,16 @@ describe("cairn summarize", () => {
     const summaryPath = result.stdout.trim().split("\n").at(-1)!;
     const { data } = readSummaryFrontmatter(summaryPath);
     expect(data.chunked).toBe(true);
+  });
+
+  it("skips legacy session markdown when summarizing all manifests", async () => {
+    writeFileSync(join(env.vault, "sessions", "legacy.md"), "Prompt is too long\n");
+
+    const result = await runCairn(env, ["summarize", "--all"]);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain(`[1/1] summarizing ${basename(env.manifestPath)}...`);
+    expect(readdirSync(join(env.vault, "sessions", "summaries")).filter((entry) => entry.endsWith(".md"))).toHaveLength(1);
   });
 
   it("preserves user-edited summaries unless --force is used, then trashes first", async () => {

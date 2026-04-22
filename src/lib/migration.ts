@@ -214,19 +214,27 @@ function shortIdFromSession(sessionId: string, file: string): string {
 async function stripLogEntry(vaultPath: string, file: string): Promise<void> {
   const logPath = join(vaultPath, "log.md");
   if (!existsSync(logPath)) return;
-  const stem = basename(file, ".md");
-  const date = stem.slice(0, 10);
-  const possibleId = stem.split("-").at(-1);
+  const marker = logMarkerFromSessionFile(file);
+  if (!marker) return;
+
   await withLogLock(vaultPath, async () => {
     const kept = readFileSync(logPath, "utf-8")
       .split("\n")
-      .filter((line) => {
-        if (possibleId && line.includes(possibleId)) return false;
-        return !(date.length === 10 && line.startsWith(`## [${date}] session |`));
-      })
+      .filter((line) => !logLineMatchesSessionMarker(line, marker))
       .join("\n");
     writeFileSync(logPath, kept.endsWith("\n") ? kept : `${kept}\n`);
   });
+}
+
+function logMarkerFromSessionFile(file: string): string | null {
+  const match = basename(file, ".md").match(/-([a-zA-Z0-9]{8,})$/);
+  return match?.[1] ?? null;
+}
+
+function logLineMatchesSessionMarker(line: string, marker: string): boolean {
+  if (!line.startsWith("## [") || !line.includes("] session |")) return false;
+  const fields = line.split("|").map((field) => field.trim());
+  return fields.at(-1) === marker;
 }
 
 function ensureMigrationDirs(vaultPath: string): void {

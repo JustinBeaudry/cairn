@@ -189,7 +189,7 @@ async function collectSessionHealth(vaultPath: string): Promise<{
     );
   }
 
-  if (!(await bunResolvableFromHookPath())) {
+  if (!bunResolvableFromHookPath()) {
     warnings++;
     lines.push(line("warn", "bun not found on hook PATH", "Stop hook will fail"));
   }
@@ -264,16 +264,16 @@ function countRecentCaptureErrors(path: string): number {
   return count;
 }
 
-async function bunResolvableFromHookPath(): Promise<boolean> {
+function bunResolvableFromHookPath(): boolean {
   const path = `/usr/bin:/bin:/usr/local/bin:${process.env.HOME ?? ""}/.bun/bin`;
+  const oldPath = process.env.PATH;
   try {
-    const proc = Bun.spawn(["/usr/bin/env", "-i", `PATH=${path}`, "/bin/sh", "-c", "command -v bun"], {
-      stdout: "ignore",
-      stderr: "ignore",
-    });
-    return (await proc.exited) === 0;
+    process.env.PATH = path;
+    return Bun.which("bun") !== null;
   } catch {
     return false;
+  } finally {
+    process.env.PATH = oldPath;
   }
 }
 
