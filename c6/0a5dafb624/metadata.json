@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "c60a5dafb624",
+  "strategy": "manual-commit",
+  "branch": "docs/vault-trust-boundary-plan",
+  "checkpoints_count": 1,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/c6/0a5dafb624/0/metadata.json",
+      "transcript": "/c6/0a5dafb624/0/full.jsonl",
+      "content_hash": "/c6/0a5dafb624/0/content_hash.txt",
+      "prompt": "/c6/0a5dafb624/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 23,
+    "cache_creation_tokens": 67530,
+    "cache_read_tokens": 740510,
+    "output_tokens": 5031,
+    "api_call_count": 13
+  }
+}
