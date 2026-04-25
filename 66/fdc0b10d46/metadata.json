@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "66fdc0b10d46",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "src/commands/doctor.ts",
+    "tests/doctor.test.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/66/fdc0b10d46/0/metadata.json",
+      "transcript": "/66/fdc0b10d46/0/full.jsonl",
+      "content_hash": "/66/fdc0b10d46/0/content_hash.txt",
+      "prompt": "/66/fdc0b10d46/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 43,
+    "cache_creation_tokens": 208790,
+    "cache_read_tokens": 1344324,
+    "output_tokens": 11262,
+    "api_call_count": 23
+  }
+}
