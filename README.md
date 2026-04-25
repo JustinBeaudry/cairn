@@ -112,8 +112,9 @@ Each type has a structural template defined in CAIRN.md with recommended section
 
 ## Context injection
 
-Inject hook reads vault in priority order under a 2KB budget (configurable
-via `CAIRN_BUDGET` env var):
+Inject hook reads vault in priority order under a 32KB budget (configurable
+via `CAIRN_BUDGET` env var; `cairn doctor` warns when the budget is under
+pressure):
 
 1. **`context.md`** — working set, always first
 2. **`index.md`** — categorized page index

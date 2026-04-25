@@ -7,7 +7,7 @@ set -euo pipefail
 
 # Resolve vault path: argument > env > default
 VAULT_PATH="${1:-${CAIRN_VAULT:-${HOME}/cairn}}"
-BUDGET="${CAIRN_BUDGET:-8192}"
+BUDGET="${CAIRN_BUDGET:-32768}"
 
 # Graceful degradation: missing vault = empty context
 if [ ! -d "$VAULT_PATH" ]; then
