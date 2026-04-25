@@ -37,6 +37,10 @@ export interface MigrationPlan {
 }
 
 const LEGACY_ERROR_STRINGS = ["Prompt is too long"];
+// Single-line bash failures emitted by the pre-ccc2da8 session-summary hook,
+// e.g. ".../session-summary: line 145: claude: command not found". The shell
+// wrote stderr into the session file when the underlying command failed.
+const LEGACY_ERROR_PATTERNS: RegExp[] = [/^[^\n]*: command not found$/];
 
 export function buildMigrationPlan(vaultPath: string): MigrationPlan {
   const sessionsDir = join(vaultPath, "sessions");
@@ -98,6 +102,7 @@ export function classifySessionFile(path: string): SessionClass {
   const trimmedBody = body.trim().normalize("NFC");
 
   if (LEGACY_ERROR_STRINGS.includes(trimmedBody)) return "legacy-error";
+  if (LEGACY_ERROR_PATTERNS.some((pattern) => pattern.test(trimmedBody))) return "legacy-error";
   if ("transcript_hash" in data && "manifest_hash" in data) return "already-migrated";
   if (Object.keys(data).length > 0 && /^## Summary\b/m.test(body)) {
     return "legacy-well-formed";

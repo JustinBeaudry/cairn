@@ -71,6 +71,10 @@ title: Unknown
 This mentions "Prompt is too long" but is not exactly the known error.
 `
   );
+  writeFileSync(
+    join(vault, "sessions", "2026-04-03T12-00-00-bashfail.md"),
+    "/Users/test/.claude/plugins/marketplaces/cairn/hooks/session-summary: line 145: claude: command not found\n"
+  );
 
   const migrated: SessionManifest = {
     session_id: "abcdef01-2345-6789-abcd-ef0123456789",
@@ -135,6 +139,7 @@ describe("cairn migrate-sessions", () => {
     expect(result.exitCode).toBe(0);
     expect(existsSync(join(env.vault, ".cairn", "migration-journal.json"))).toBe(false);
     expect(existsSync(join(env.vault, "sessions", ".trash", "2026-04-01T00-00-00-deadbeef.md"))).toBe(true);
+    expect(existsSync(join(env.vault, "sessions", ".trash", "2026-04-03T12-00-00-bashfail.md"))).toBe(true);
     expect(existsSync(join(env.vault, "sessions", "2026-04-02T00-00-00.md"))).toBe(false);
 
     const convertedPath = join(env.vault, "sessions", "2026-04-02T00-00-00-123e4567.md");
