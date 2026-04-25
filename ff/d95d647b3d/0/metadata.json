@@ -1,0 +1,65 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "ffd95d647b3d",
+  "session_id": "2320bb8f-8b99-4d66-b4b4-e96a575894cf",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-25T06:48:35.973842Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "hooks/inject",
+    "src/lib/constants.ts",
+    "tests/inject.test.ts"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "8979515cf31a",
+  "token_usage": {
+    "input_tokens": 191,
+    "cache_creation_tokens": 1106257,
+    "cache_read_tokens": 26423513,
+    "output_tokens": 155791,
+    "api_call_count": 122
+  },
+  "session_metrics": {
+    "turn_count": 5
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-25T06:48:35.938333Z",
+    "agent_lines": 30,
+    "agent_removed": 16,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 30,
+    "total_lines_changed": 46,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 266,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        "docs/brainstorms/2026-04-24-cairn-systematic-review-requirements.md": 266
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 761,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 803,
+      "agent_lines_removed": 18
+    }
+  ]
+}
