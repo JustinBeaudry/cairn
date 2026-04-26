@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "635c685b5ea0",
+  "strategy": "manual-commit",
+  "branch": "chore/rename-cairn-to-kb",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "README.md",
+    "package.json",
+    "src/lib/vault.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/63/5c685b5ea0/0/metadata.json",
+      "transcript": "/63/5c685b5ea0/0/full.jsonl",
+      "content_hash": "/63/5c685b5ea0/0/content_hash.txt",
+      "prompt": "/63/5c685b5ea0/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 21,
+    "cache_creation_tokens": 177494,
+    "cache_read_tokens": 1655209,
+    "output_tokens": 7921,
+    "api_call_count": 11
+  }
+}

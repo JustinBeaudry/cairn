@@ -1,0 +1,5 @@
+Ready to merge? yes) merge no) /resolve-pr-feedback
+
+---
+
+yes, close with that explanation
