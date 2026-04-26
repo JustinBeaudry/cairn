@@ -84,7 +84,7 @@ async function buildManifest(
   sessionId: string,
   input: HookInput
 ): Promise<SessionManifest> {
-  const timestamp = new Date().toISOString();
+  const timestamp = new Date().toISOString().slice(0, 19);
   const transcriptPath =
     typeof input.transcript_path === "string" && input.transcript_path.length > 0
       ? input.transcript_path

@@ -385,7 +385,7 @@ function buildSummaryDocument(input: {
   const frontmatter: SessionSummaryFrontmatter = {
     manifest_hash: input.manifestHash,
     transcript_hash: input.transcriptHash,
-    generated_at: new Date().toISOString(),
+    generated_at: new Date().toISOString().slice(0, 19),
     degraded: input.degraded || undefined,
     chunked: input.chunked || undefined,
     truncated_turns: input.truncatedTurns > 0 ? input.truncatedTurns : undefined,
