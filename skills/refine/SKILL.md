@@ -61,10 +61,9 @@ When the user runs `/cairn:refine`:
    - For each link target, verify the target's `## Backlinks` section lists the source.
    - Fix any gaps silently (no user approval needed for backlink sync).
 
-8. **Research gaps**:
-   - Scan wiki prose for proper nouns or domain terms mentioned 3+ times across pages with no matching page of their own (implicit concepts).
-   - Identify pages with only one source or fewer than 2 inbound links after the under-connected pass (thin topics).
-   - Collect open questions implied by `## Gaps` sections on overview pages.
+8. **Research gap surfacing**:
+   - Pull implicit concepts and thin topics from the Lint findings (Lint steps 9–10), re-verifying thin topics against the post-pass backlink counts from step 4.
+   - Collect open questions implied by `Gaps` sections on overview pages (heading level may vary).
    - Present to user as "Investigations worth pursuing": specific questions to ask, terms to research, external sources to ingest. Never auto-create pages from gaps — they are prompts for the next ingest, not filings.
 
 9. **Session-derived context, if needed**:

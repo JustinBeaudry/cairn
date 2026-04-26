@@ -281,7 +281,7 @@ When the user asks a question the vault might answer:
    - **Comparison table** — when the question pits options against each other; file as a `comparison` page if worth keeping.
    - **Marp slide deck** — when the user wants a presentation (`.md` with Marp frontmatter).
    - **Chart** (matplotlib, mermaid) — when the answer is structural, temporal, or quantitative.
-   - **Canvas / overview page** — when the question spans many pages and a guided tour helps.
+   - **Overview page** — when the question spans many pages and a guided tour helps; write it as a Markdown wiki page (type: `overview`) with wikilink citations.
 4. If your answer contains novel knowledge worth keeping, write a new wiki page and add it to `index.md`. Comparisons and overviews generated inline are especially worth filing — they are synthesis artifacts that compound with future queries.
 5. Append to `log.md`:
 
@@ -311,7 +311,7 @@ When the user asks you to lint the vault:
 7. **Contradictions**: claims in one wiki page that conflict with claims in another. Flag both pages and the conflicting statements. Contradictions are the most dangerous vault failure mode.
 8. **Missing backlinks**: wiki pages without a `## Backlinks` section, or pages whose backlinks are out of sync with actual inbound wikilinks.
 9. **Implicit concepts**: terms or named entities mentioned 3+ times across the vault that lack a dedicated page. Surface them as candidates for new pages.
-10. **Research gaps**: topics the vault touches thinly (single source, few inbound links, open questions implied by `## Gaps` sections on overview pages). Suggest investigations — specific questions to ask or external sources to ingest — not auto-fixes.
+10. **Research gaps**: topics the vault touches thinly (single source, fewer than 2 inbound links, open questions implied by `Gaps` sections on overview pages — heading level may vary). Suggest investigations — specific questions to ask or external sources to ingest — not auto-fixes.
 11. Report all findings. All fixes are opt-in — do not auto-fix without user approval. Research-gap suggestions are prompts for the user, never filed automatically.
 
 ### Refine
