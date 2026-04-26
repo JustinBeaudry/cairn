@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, readdirSync, statSync, unlinkSync } from "node:fs";
-import { join } from "node:path";
+import { homedir } from "node:os";
+import { isAbsolute, join, relative, resolve } from "node:path";
 import { defineCommand } from "citty";
 import { resolveVaultPath, checkVaultState } from "../lib/vault";
 import { isQmdOnPath, isVaultRegistered, QMD_INSTALL_HINT } from "../lib/qmd";
@@ -112,6 +113,34 @@ export default defineCommand({
     }
 
     lines.push("");
+    lines.push("Trust boundary (best-effort + detection)");
+    lines.push(
+      line(
+        "warn",
+        "run the security self-test manually",
+        "bash <plugin>/hooks/security-self-test — host-level deny rules are not simulatable from a CLI"
+      )
+    );
+    lines.push(
+      line(
+        "ok",
+        "sanctioned retrieval paths",
+        "kb recall / kb get / kb list-topics (curated), kb read-raw / kb read-session (ask-gated)"
+      )
+    );
+
+    if (!vaultMatchesDefaultDenyGlobs(vaultPath)) {
+      warnings++;
+      lines.push(
+        line(
+          "warn",
+          "vault path outside default deny globs",
+          `${vaultPath} does not match **/kb/** or ~/kb/** — shipped .claude/settings.json deny rules will not fire. Add project-scoped deny entries or move the vault under ~/kb.`
+        )
+      );
+    }
+
+    lines.push("");
     if (errors > 0) {
       lines.push(`${errors} error(s), ${warnings} warning(s). Fix errors first.`);
     } else if (warnings > 0) {
@@ -148,6 +177,25 @@ function findNewestMarkdown(vaultPath: string): { path: string; mtimeMs: number 
     }, skipDirs);
   }
   return newest;
+}
+
+function vaultMatchesDefaultDenyGlobs(vaultPath: string): boolean {
+  // Deny rules are shipped for any path containing /kb/ as a segment
+  // and for ~/kb/**. If the resolved vault path satisfies neither,
+  // the host-level enforcement is silently inactive.
+  //
+  // Uses path.relative to compare against the default ~/kb root in a
+  // separator-aware way (works on POSIX and Windows). For the segment
+  // check, splits on both "/" and the platform separator to catch both
+  // normalized and non-normalized inputs.
+  const resolvedVault = resolve(vaultPath);
+  const defaultRoot = resolve(join(homedir(), "kb"));
+  const rel = relative(defaultRoot, resolvedVault);
+  if (rel === "" || (!rel.startsWith("..") && !isAbsolute(rel))) {
+    return true;
+  }
+  const segments = resolvedVault.split(/[\\/]/).filter(Boolean);
+  return segments.includes("kb");
 }
 
 function walkForMarkdown(

@@ -16,5 +16,9 @@ Expected flow:
 4. Merge candidates (overlapping topics) — propose combined structure.
 5. Split candidates (broad pages, 4+ H2s) — propose split.
 6. Backlinks audit — sync silently.
-7. Vault health dashboard (after).
-8. Append to `log.md`: `## [YYYY-MM-DD] refine | vault refinement pass`.
+7. **Research-gap surfacing** — pull implicit concepts and thin topics from
+   Lint findings, plus open questions implied by `Gaps` sections on overview
+   pages. Present as "investigations worth pursuing"; never file pages
+   automatically.
+8. Vault health dashboard (after).
+9. Append to `log.md`: `## [YYYY-MM-DD] refine | vault refinement pass`.

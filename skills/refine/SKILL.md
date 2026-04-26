@@ -40,8 +40,9 @@ When the user runs `/kb:refine`:
 4. **Under-connected pages** (< 3 inbound links):
    - Check `## Backlinks` sections to count inbound links.
    - Check your tool list for `mcp__qmd__qmd_search` (or `qmd_search`). If
-     present, use it to find related pages by keyword overlap. Otherwise, read
-     `index.md` and scan category neighbors.
+     present, use it to find related pages by keyword overlap. Otherwise, use
+     `kb recall <keyword>` to find related pages in `wiki/`, or `kb list-topics`
+     to scan category neighbors.
    - Suggest new connections: "[[Page A]] has 1 inbound link. Related to [[Page B]] and [[Page C]]?"
    - If approved, add wikilinks and update backlinks on both sides.
 
@@ -60,13 +61,18 @@ When the user runs `/kb:refine`:
    - For each link target, verify the target's `## Backlinks` section lists the source.
    - Fix any gaps silently (no user approval needed for backlink sync).
 
-8. **Session-derived context, if needed**:
+8. **Research gap surfacing**:
+   - Pull implicit concepts and thin topics from the Lint findings (Lint steps 9–10), re-verifying thin topics against the post-pass backlink counts from step 4.
+   - Collect open questions implied by `Gaps` sections on overview pages (heading level may vary).
+   - Present to user as "Investigations worth pursuing": specific questions to ask, terms to research, external sources to ingest. Never auto-create pages from gaps — they are prompts for the next ingest, not filings.
+
+9. **Session-derived context, if needed**:
    - Treat `sessions/*.md` files as manifests, not summaries.
    - When a refinement question needs session content, run `kb summarize --json <manifest-path>` and read the returned `path` under `sessions/summaries/`.
    - If summary generation fails, skip that manifest and list it under `Skipped session summaries`.
    - If the JSON result has `degraded: true`, label any finding from that summary as `Degraded (excerpt-only)`.
 
-9. Run the vault health dashboard again to show improvement:
+10. Run the vault health dashboard again to show improvement:
 
 ```
 ## Vault Health (After Refinement)
@@ -76,7 +82,7 @@ When the user runs `/kb:refine`:
 - Backlinks coverage: N/N pages (N%)
 ```
 
-10. Append to `<vault>/log.md`:
+11. Append to `<vault>/log.md`:
 
 ```
 ## [YYYY-MM-DD] refine | vault refinement pass
@@ -92,3 +98,4 @@ Baseline: N pages, N.N avg links. Updated [[Page A]], merged [[Page B]] + [[Page
 4. Update `index.md` after every structural change.
 5. Update `context.md` if refinement affects current focus areas.
 6. Never delete pages — archive instead (move to `wiki/archive/`).
+7. Refine only operates on `wiki/**`, `index.md`, `context.md`, `log.md`. Do not read `sessions/` or `raw/` during refinement; if a stale wiki page cites an untrusted source, pull excerpts via `kb read-raw` / `kb read-session` with user approval.

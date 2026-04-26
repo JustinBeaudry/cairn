@@ -95,5 +95,19 @@ export function scaffoldVault(vaultPath: string): ScaffoldResult {
     created.push(".kb/state.json");
   }
 
+  // Fresh installs default to lazy inject mode so SessionStart stays
+  // under the pointer-payload budget. Existing vaults (with a state
+  // file already present above) are left alone to preserve behavior.
+  const configPath = join(vaultPath, ".kb", "config.json");
+  if (existsSync(configPath)) {
+    skipped.push(".kb/config.json");
+  } else {
+    writeFileSync(
+      configPath,
+      JSON.stringify({ inject_mode: "lazy" }, null, 2) + "\n"
+    );
+    created.push(".kb/config.json");
+  }
+
   return { created, skipped };
 }

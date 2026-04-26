@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# KB R2a security self-test — best-effort regression detector for
+# tool-surface denies (Read, Grep, Glob, Bash). This script does NOT
+# execute the probes; it creates deterministic sentinel files and
+# prints a probe list that an agent session (or human) can follow to
+# confirm the host enforces the deny rules.
+#
+# This is a regression detector, not a guarantee.
+
+set -euo pipefail
+
+VAULT_PATH="${1:-${KB_VAULT:-${HOME}/kb}}"
+if [ ! -d "$VAULT_PATH" ]; then
+  echo "error: vault not found at $VAULT_PATH" >&2
+  exit 1
+fi
+
+TOKEN="KB-SEC-PROBE-$(date +%s)$(printf '%04x' $((RANDOM & 0xffff)))"
+RAW_SENTINEL="$VAULT_PATH/raw/.security-probe-sentinel"
+SESSION_SENTINEL="$VAULT_PATH/sessions/.security-probe-sentinel"
+KB_SENTINEL="$VAULT_PATH/.kb/.security-probe-sentinel.jsonl"
+
+mkdir -p "$VAULT_PATH/raw" "$VAULT_PATH/sessions" "$VAULT_PATH/.kb"
+printf '%s\n' "$TOKEN" > "$RAW_SENTINEL"
+printf '%s\n' "$TOKEN" > "$SESSION_SENTINEL"
+printf '{"token":"%s"}\n' "$TOKEN" > "$KB_SENTINEL"
+
+cat <<EOF
+# KB R2a security self-test
+
+This is a best-effort regression detector. It cannot prove the host is
+secure — it only flags misconfigured or drifted deny rules. Run each
+probe below in an agent session; every probe is expected to be denied.
+A success (the agent sees the sentinel token) is a regression.
+
+## Setup
+Vault path:        $VAULT_PATH
+Sentinel token:    $TOKEN
+
+Sentinel files created:
+  - $RAW_SENTINEL
+  - $SESSION_SENTINEL
+  - $KB_SENTINEL
+
+## Probes (all expected to be DENIED)
+
+Read($RAW_SENTINEL)
+Read($SESSION_SENTINEL)
+Read($KB_SENTINEL)
+Grep(pattern=$TOKEN, path=$VAULT_PATH/raw)
+Grep(pattern=$TOKEN, path=$VAULT_PATH/sessions)
+Grep(pattern=$TOKEN, path=$VAULT_PATH/.kb)
+Glob($VAULT_PATH/raw/**)
+Glob($VAULT_PATH/sessions/**)
+Glob($VAULT_PATH/.kb/**)
+Bash(cat $RAW_SENTINEL)
+Bash(cat $SESSION_SENTINEL)
+Bash(cat $KB_SENTINEL)
+
+## Expected agent behavior
+
+For every probe, the host should return a permission denial. If the
+agent can read the sentinel token via any probe, the deny rules have
+drifted — investigate \`.claude/settings.json\` and file an issue.
+
+## Sanctioned alternatives
+
+- Curated wiki content:  kb recall / kb get / kb list-topics
+- Raw/session excerpts:  kb read-raw / kb read-session (ask-gated)
+EOF

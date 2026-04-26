@@ -20,5 +20,11 @@ Expected output:
 7. **Contradictions** — conflicting claims across pages. Flag both pages and
    the conflicting statements. Most dangerous vault failure mode.
 8. Missing or out-of-sync `## Backlinks` sections.
+9. **Implicit concepts** — terms or named entities mentioned 3+ times across
+   the vault without a dedicated page. Surface as candidates, not auto-fixes.
+10. **Research gaps** — thinly covered topics (single source, fewer than 2
+    inbound links, open questions implied by `Gaps` sections on overview
+    pages). Suggest investigations; never file pages automatically.
 
-Do not auto-fix without user approval.
+Do not auto-fix without user approval. Implicit-concept and research-gap
+findings are prompts for the user, not pages to create.
