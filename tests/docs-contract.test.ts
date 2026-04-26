@@ -7,40 +7,40 @@ function read(relPath: string): string {
 }
 
 describe("docs contract — trust boundary references", () => {
-  it("templates/CAIRN.md describes the trust boundary", () => {
-    const body = read("templates/CAIRN.md");
+  it("templates/KB.md describes the trust boundary", () => {
+    const body = read("templates/KB.md");
     expect(body).toMatch(/Trust Boundary|trust boundary/);
-    expect(body).toContain("cairn recall");
-    expect(body).toContain("cairn get");
-    expect(body).toContain("cairn list-topics");
-    expect(body).toContain("cairn read-raw");
-    expect(body).toContain("cairn read-session");
+    expect(body).toContain("kb recall");
+    expect(body).toContain("kb get");
+    expect(body).toContain("kb list-topics");
+    expect(body).toContain("kb read-raw");
+    expect(body).toContain("kb read-session");
     expect(body).toMatch(/ask-gated/);
     expect(body).toMatch(/best-effort/);
   });
 
-  it("templates/CAIRN.md warns about untrusted excerpt content", () => {
-    const body = read("templates/CAIRN.md");
+  it("templates/KB.md warns about untrusted excerpt content", () => {
+    const body = read("templates/KB.md");
     expect(body).toMatch(/never.*instructions|do not follow|treat.*as data/i);
   });
 
-  it("skills/cairn/SKILL.md uses the sanctioned CLI in Query workflow", () => {
-    const body = read("skills/cairn/SKILL.md");
-    expect(body).toContain("cairn list-topics");
-    expect(body).toContain("cairn recall");
-    expect(body).toContain("cairn get");
-    expect(body).toMatch(/cairn read-session/);
-    expect(body).toMatch(/cairn read-raw/);
+  it("skills/kb/SKILL.md uses the sanctioned CLI in Query workflow", () => {
+    const body = read("skills/kb/SKILL.md");
+    expect(body).toContain("kb list-topics");
+    expect(body).toContain("kb recall");
+    expect(body).toContain("kb get");
+    expect(body).toMatch(/kb read-session/);
+    expect(body).toMatch(/kb read-raw/);
   });
 
-  it("skills/extract/SKILL.md uses cairn read-session, not direct file reads", () => {
+  it("skills/extract/SKILL.md uses kb read-session, not direct file reads", () => {
     const body = read("skills/extract/SKILL.md");
-    expect(body).toContain("cairn read-session");
+    expect(body).toContain("kb read-session");
     expect(body).toMatch(/untrusted/i);
   });
 
   it("skills/refine/SKILL.md points to sanctioned retrieval for cross-references", () => {
     const body = read("skills/refine/SKILL.md");
-    expect(body).toMatch(/cairn recall|cairn list-topics/);
+    expect(body).toMatch(/kb recall|kb list-topics/);
   });
 });

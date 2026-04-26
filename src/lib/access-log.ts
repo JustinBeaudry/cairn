@@ -43,7 +43,7 @@ export async function appendAccessLog(input: AccessLogInput): Promise<void> {
     exit_code: input.exit_code,
   };
   await appendMinimalJsonl(entry as unknown as Record<string, unknown>, {
-    logPath: join(input.vaultPath, ".cairn", "access-log.jsonl"),
-    lockPath: join(input.vaultPath, ".cairn", "access-log.jsonl.lock"),
+    logPath: join(input.vaultPath, ".kb", "access-log.jsonl"),
+    lockPath: join(input.vaultPath, ".kb", "access-log.jsonl.lock"),
   });
 }

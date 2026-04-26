@@ -14,17 +14,17 @@ afterEach(() => {
 });
 
 function tmpVault(): string {
-  const dir = join(tmpdir(), `cairn-init-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const dir = join(tmpdir(), `kb-init-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   vaults.push(dir);
   return dir;
 }
 
 describe("init — fresh-install config.json", () => {
-  it("writes .cairn/config.json with inject_mode=lazy", () => {
+  it("writes .kb/config.json with inject_mode=lazy", () => {
     const vault = tmpVault();
     const result = scaffoldVault(vault);
-    expect(result.created).toContain(".cairn/config.json");
-    const configPath = join(vault, ".cairn", "config.json");
+    expect(result.created).toContain(".kb/config.json");
+    const configPath = join(vault, ".kb", "config.json");
     expect(existsSync(configPath)).toBe(true);
     const parsed = JSON.parse(readFileSync(configPath, "utf-8"));
     expect(parsed.inject_mode).toBe("lazy");
@@ -32,11 +32,11 @@ describe("init — fresh-install config.json", () => {
 
   it("does not overwrite an existing config.json", () => {
     const vault = tmpVault();
-    mkdirSync(join(vault, ".cairn"), { recursive: true });
-    const preExistingPath = join(vault, ".cairn", "config.json");
+    mkdirSync(join(vault, ".kb"), { recursive: true });
+    const preExistingPath = join(vault, ".kb", "config.json");
     writeFileSync(preExistingPath, JSON.stringify({ inject_mode: "eager", custom: 1 }));
     const result = scaffoldVault(vault);
-    expect(result.skipped).toContain(".cairn/config.json");
+    expect(result.skipped).toContain(".kb/config.json");
     const parsed = JSON.parse(readFileSync(preExistingPath, "utf-8"));
     expect(parsed.inject_mode).toBe("eager");
     expect(parsed.custom).toBe(1);

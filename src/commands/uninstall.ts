@@ -2,7 +2,7 @@ import { defineCommand } from "citty";
 import { resolveVaultPath } from "../lib/vault";
 
 export default defineCommand({
-  meta: { name: "uninstall", description: "Remove Cairn (preserves vault)" },
+  meta: { name: "uninstall", description: "Remove KB (preserves vault)" },
   args: {
     force: { type: "boolean", description: "Skip confirmation prompt", alias: ["f"], default: false },
   },
@@ -15,7 +15,7 @@ export default defineCommand({
       );
       const ok = await new Promise<boolean>((resolve) => {
         rl.question(
-          "This will remove the Cairn plugin. Your vault is preserved.\nContinue? [y/N] ",
+          "This will remove the KB plugin. Your vault is preserved.\nContinue? [y/N] ",
           (answer) => {
             rl.close();
             resolve(answer.toLowerCase() === "y");
@@ -28,8 +28,8 @@ export default defineCommand({
       }
     }
 
-    console.log("\nTo remove the Cairn plugin, run:");
-    console.log("  claude plugin remove cairn");
+    console.log("\nTo remove the KB plugin, run:");
+    console.log("  claude plugin remove kb");
     console.log(`\nVault preserved at ${vaultPath}. Delete manually if desired.`);
   },
 });

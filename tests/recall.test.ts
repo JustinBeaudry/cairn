@@ -14,11 +14,11 @@ afterEach(() => {
 });
 
 function makeVault(): string {
-  const dir = join(tmpdir(), `cairn-recall-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const dir = join(tmpdir(), `kb-recall-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   mkdirSync(join(dir, "wiki"), { recursive: true });
   mkdirSync(join(dir, "sessions"), { recursive: true });
   mkdirSync(join(dir, "raw"), { recursive: true });
-  mkdirSync(join(dir, ".cairn"), { recursive: true });
+  mkdirSync(join(dir, ".kb"), { recursive: true });
   writeFileSync(
     join(dir, "wiki", "auth.md"),
     "# Auth Flow\n\nOAuth2 PKCE flow documented here.\n"
@@ -43,7 +43,7 @@ async function run(vault: string, query: string): Promise<{ stdout: string; stde
   const proc = Bun.spawn(["bun", "src/cli.ts", "recall", query], {
     stdout: "pipe",
     stderr: "pipe",
-    env: { ...process.env, CAIRN_VAULT: vault },
+    env: { ...process.env, KB_VAULT: vault },
   });
   const stdout = await new Response(proc.stdout).text();
   const stderr = await new Response(proc.stderr).text();
@@ -88,7 +88,7 @@ describe("recall command", () => {
   });
 
   it("missing vault exits non-zero without leaking content", async () => {
-    const { exitCode, stdout, stderr } = await run("/tmp/does-not-exist-cairn-" + Date.now(), "anything");
+    const { exitCode, stdout, stderr } = await run("/tmp/does-not-exist-kb-" + Date.now(), "anything");
     expect(exitCode).not.toBe(0);
     expect(stdout).toBe("");
     expect(stderr).toMatch(/vault/i);
@@ -120,7 +120,7 @@ describe("recall command", () => {
 
   it("does not follow symlinks inside wiki/ that point outside the vault", async () => {
     const vault = makeVault();
-    const outside = join(tmpdir(), `cairn-recall-outside-${Date.now()}.md`);
+    const outside = join(tmpdir(), `kb-recall-outside-${Date.now()}.md`);
     writeFileSync(outside, "OUTSIDE_VAULT_OAuth2_CONTENT\n");
     try {
       symlinkSync(outside, join(vault, "wiki", "escape.md"));
@@ -138,7 +138,7 @@ describe("recall command", () => {
   it("rejects when wiki/ is itself a symlink", async () => {
     const vault = makeVault();
     rmSync(join(vault, "wiki"), { recursive: true });
-    const outside = join(tmpdir(), `cairn-recall-fake-wiki-${Date.now()}`);
+    const outside = join(tmpdir(), `kb-recall-fake-wiki-${Date.now()}`);
     mkdirSync(outside, { recursive: true });
     writeFileSync(join(outside, "poisoned.md"), "OAuth2 from outside\n");
     try {

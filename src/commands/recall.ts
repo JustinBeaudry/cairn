@@ -147,7 +147,7 @@ export default defineCommand({
             trust: "curated" as const,
             source_scope: "wiki" as const,
             no_results: true,
-            suggestions: ["Try: cairn list-topics"],
+            suggestions: ["Try: kb list-topics"],
           }
         : { trust: "curated" as const, source_scope: "wiki" as const };
 

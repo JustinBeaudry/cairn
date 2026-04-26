@@ -4,7 +4,7 @@ import { VERSION } from "./lib/constants";
 
 const main = defineCommand({
   meta: {
-    name: "cairn",
+    name: "kb",
     version: VERSION,
     description: "A persistent memory plugin for Claude Code",
   },

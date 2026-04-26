@@ -13,7 +13,7 @@ describe("withExclusiveLock", () => {
   let dir: string;
 
   beforeEach(() => {
-    dir = mkdtempSync(join(tmpdir(), "cairn-lock-"));
+    dir = mkdtempSync(join(tmpdir(), "kb-lock-"));
   });
 
   afterEach(() => {
@@ -113,28 +113,28 @@ describe("withExclusiveLock", () => {
     expect(existsSync(lockPath)).toBe(false);
   });
 
-  it("withLogLock acquires .cairn/log.lock under the vault", async () => {
-    const vaultDir = mkdtempSync(join(tmpdir(), "cairn-vault-"));
+  it("withLogLock acquires .kb/log.lock under the vault", async () => {
+    const vaultDir = mkdtempSync(join(tmpdir(), "kb-vault-"));
     try {
       let ran = false;
       await withLogLock(vaultDir, async () => {
         ran = true;
-        expect(existsSync(join(vaultDir, ".cairn", "log.lock"))).toBe(true);
+        expect(existsSync(join(vaultDir, ".kb", "log.lock"))).toBe(true);
       });
       expect(ran).toBe(true);
-      expect(existsSync(join(vaultDir, ".cairn", "log.lock"))).toBe(false);
+      expect(existsSync(join(vaultDir, ".kb", "log.lock"))).toBe(false);
     } finally {
       rmSync(vaultDir, { recursive: true, force: true });
     }
   });
 
-  it("withMigrationLock acquires .cairn/migration.lock under the vault", async () => {
-    const vaultDir = mkdtempSync(join(tmpdir(), "cairn-vault-"));
+  it("withMigrationLock acquires .kb/migration.lock under the vault", async () => {
+    const vaultDir = mkdtempSync(join(tmpdir(), "kb-vault-"));
     try {
       let ran = false;
       await withMigrationLock(vaultDir, async () => {
         ran = true;
-        expect(existsSync(join(vaultDir, ".cairn", "migration.lock"))).toBe(true);
+        expect(existsSync(join(vaultDir, ".kb", "migration.lock"))).toBe(true);
       });
       expect(ran).toBe(true);
     } finally {

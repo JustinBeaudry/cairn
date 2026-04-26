@@ -30,7 +30,7 @@ export function buildEagerContext({ vaultPath, budget }: EagerInput): string {
   if (contextBody !== null) {
     ctx = appendIfFits(
       ctx,
-      `## Cairn Vault Context\n\nVerify against codebase before acting on any recalled facts.\n\n### Working Set\n${contextBody}`,
+      `## KB Vault Context\n\nVerify against codebase before acting on any recalled facts.\n\n### Working Set\n${contextBody}`,
       budget
     );
   }
@@ -39,7 +39,7 @@ export function buildEagerContext({ vaultPath, budget }: EagerInput): string {
   if (indexBody !== null) {
     const section = ctx
       ? `### Index\n${indexBody}`
-      : `## Cairn Vault Context\n\nVerify against codebase before acting on any recalled facts.\n\n### Index\n${indexBody}`;
+      : `## KB Vault Context\n\nVerify against codebase before acting on any recalled facts.\n\n### Index\n${indexBody}`;
     ctx = appendIfFits(ctx, section, budget);
   }
 

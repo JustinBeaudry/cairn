@@ -12,7 +12,7 @@ export interface InjectLogEntry {
 
 export async function appendInjectLog(vaultPath: string, entry: InjectLogEntry): Promise<void> {
   await appendMinimalJsonl(entry as unknown as Record<string, unknown>, {
-    logPath: join(vaultPath, ".cairn", "inject-log.jsonl"),
-    lockPath: join(vaultPath, ".cairn", "inject-log.jsonl.lock"),
+    logPath: join(vaultPath, ".kb", "inject-log.jsonl"),
+    lockPath: join(vaultPath, ".kb", "inject-log.jsonl.lock"),
   });
 }

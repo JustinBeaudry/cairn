@@ -19,7 +19,7 @@ export default defineCommand({
         return;
       }
 
-      if (!flags.session) throw new Error("usage: cairn summarize [--json] [--force] <session>");
+      if (!flags.session) throw new Error("usage: kb summarize [--json] [--force] <session>");
       const result = await summarizeSession(vaultPath, flags.session, {
         force: flags.force,
         destructive: flags.destructive,

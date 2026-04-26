@@ -1,11 +1,11 @@
 ---
 name: lint
-description: Lint the Cairn vault — orphans, dead links, stale content, contradictions
+description: Lint the KB vault — orphans, dead links, stale content, contradictions
 ---
 
-# Lint the Cairn Vault
+# Lint the KB Vault
 
-Invoke the `cairn` skill and follow its Lint workflow. Report findings only —
+Invoke the `kb` skill and follow its Lint workflow. Report findings only —
 all fixes are opt-in.
 
 Expected output:

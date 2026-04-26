@@ -1,9 +1,9 @@
 ---
 name: refine
-description: Refine the Cairn vault — stale pages, weak connections, merges, backlinks
+description: Refine the KB vault — stale pages, weak connections, merges, backlinks
 ---
 
-# Refine the Cairn Vault
+# Refine the KB Vault
 
 Invoke the `refine` skill. All structural changes (merge, split, archive)
 require user approval. Backlink sync is automatic.

@@ -13,10 +13,10 @@ afterEach(() => {
 });
 
 function makeVault(): string {
-  const dir = join(tmpdir(), `cairn-sec-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const dir = join(tmpdir(), `kb-sec-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   mkdirSync(join(dir, "raw"), { recursive: true });
   mkdirSync(join(dir, "sessions"), { recursive: true });
-  mkdirSync(join(dir, ".cairn"), { recursive: true });
+  mkdirSync(join(dir, ".kb"), { recursive: true });
   vaults.push(dir);
   return dir;
 }
@@ -40,19 +40,19 @@ describe("security-self-test hook", () => {
     expect(exitCode).toBe(0);
   });
 
-  it("creates sentinel files in raw/, sessions/, and .cairn/", async () => {
+  it("creates sentinel files in raw/, sessions/, and .kb/", async () => {
     const vault = makeVault();
     await runSelfTest(vault);
     expect(existsSync(join(vault, "raw", ".security-probe-sentinel"))).toBe(true);
     expect(existsSync(join(vault, "sessions", ".security-probe-sentinel"))).toBe(true);
-    expect(existsSync(join(vault, ".cairn", ".security-probe-sentinel.jsonl"))).toBe(true);
+    expect(existsSync(join(vault, ".kb", ".security-probe-sentinel.jsonl"))).toBe(true);
   });
 
   it("writes unique sentinel tokens so agent can confirm read escape", async () => {
     const vault = makeVault();
     await runSelfTest(vault);
     const raw = readFileSync(join(vault, "raw", ".security-probe-sentinel"), "utf-8");
-    expect(raw).toMatch(/CAIRN-SEC-PROBE-[0-9a-f]+/);
+    expect(raw).toMatch(/KB-SEC-PROBE-[0-9a-f]+/);
   });
 
   it("output lists expected-deny probes for Read/Grep/Glob/Bash", async () => {
@@ -64,7 +64,7 @@ describe("security-self-test hook", () => {
     expect(stdout).toMatch(/Bash\(/);
     expect(stdout).toMatch(/raw\//);
     expect(stdout).toMatch(/sessions\//);
-    expect(stdout).toMatch(/\.cairn\//);
+    expect(stdout).toMatch(/\.kb\//);
   });
 
   it("output includes sentinel paths for verification", async () => {
@@ -81,7 +81,7 @@ describe("security-self-test hook", () => {
 });
 
 describe("plugin .claude/settings.json", () => {
-  it("ships deny rules for raw/, sessions/, and .cairn/ logs", () => {
+  it("ships deny rules for raw/, sessions/, and .kb/ logs", () => {
     const settingsPath = join(process.cwd(), ".claude", "settings.json");
     expect(existsSync(settingsPath)).toBe(true);
     const raw = readFileSync(settingsPath, "utf-8");
@@ -91,7 +91,7 @@ describe("plugin .claude/settings.json", () => {
     const joined = denies.join("\n");
     expect(joined).toMatch(/raw/);
     expect(joined).toMatch(/sessions/);
-    expect(joined).toMatch(/\.cairn/);
+    expect(joined).toMatch(/\.kb/);
     expect(joined).toMatch(/Read\(/);
     expect(joined).toMatch(/Grep\(/);
     expect(joined).toMatch(/Glob\(/);

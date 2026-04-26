@@ -14,10 +14,10 @@ afterEach(() => {
 });
 
 function makeVault(): string {
-  const dir = join(tmpdir(), `cairn-get-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const dir = join(tmpdir(), `kb-get-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   mkdirSync(join(dir, "wiki"), { recursive: true });
   mkdirSync(join(dir, "raw"), { recursive: true });
-  mkdirSync(join(dir, ".cairn"), { recursive: true });
+  mkdirSync(join(dir, ".kb"), { recursive: true });
   writeFileSync(
     join(dir, "wiki", "auth.md"),
     "# Auth Flow\n\nOAuth2 with PKCE.\n\nRefresh tokens rotate.\n"
@@ -31,7 +31,7 @@ async function run(vault: string, page: string): Promise<{ stdout: string; stder
   const proc = Bun.spawn(["bun", "src/cli.ts", "get", page], {
     stdout: "pipe",
     stderr: "pipe",
-    env: { ...process.env, CAIRN_VAULT: vault },
+    env: { ...process.env, KB_VAULT: vault },
   });
   const stdout = await new Response(proc.stdout).text();
   const stderr = await new Response(proc.stderr).text();

@@ -34,9 +34,9 @@ export function buildPointerPayload({ vaultPath }: PointerInput): string {
     : [];
 
   const header =
-    "## Cairn Vault\n" +
+    "## KB Vault\n" +
     "Curated memory available. Do not read sessions/ or raw/ directly.\n" +
-    "Run `cairn list-topics` or `cairn recall <query>` to retrieve.";
+    "Run `kb list-topics` or `kb recall <query>` to retrieve.";
 
   if (categories.length === 0) return header;
 

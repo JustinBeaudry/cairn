@@ -2,7 +2,7 @@
  * qmd CLI detection.
  *
  * qmd is an optional BM25 + vector search layer over markdown vaults. When
- * installed and the vault is registered as a collection, cairn workflows use
+ * installed and the vault is registered as a collection, KB workflows use
  * qmd_deep_search as the primary search step.
  */
 
@@ -58,7 +58,7 @@ export async function isVaultRegistered(vaultPath: string): Promise<boolean> {
 export const QMD_INSTALL_HINT = `qmd is optional — install for hybrid BM25 + vector search:
 
   npm install -g @tobilu/qmd
-  qmd collection add <vault-path> --name cairn --mask "**/*.md"
+  qmd collection add <vault-path> --name kb --mask "**/*.md"
   qmd embed
 
 Then add the MCP server to your Claude Code config:

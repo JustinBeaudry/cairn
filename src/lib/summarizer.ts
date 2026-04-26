@@ -256,7 +256,7 @@ function extractContentText(content: unknown): string {
 }
 
 function summarizeThreshold(): number {
-  const raw = process.env.CAIRN_SUMMARIZE_CHUNK_BYTES;
+  const raw = process.env.KB_SUMMARIZE_CHUNK_BYTES;
   if (!raw) return DEFAULT_CHUNK_BYTES;
   const parsed = Number.parseInt(raw, 10);
   return Number.isFinite(parsed) && parsed > 100 ? parsed : DEFAULT_CHUNK_BYTES;
@@ -332,7 +332,7 @@ async function reduceSummaries(partials: string[], threshold: number): Promise<s
 }
 
 async function runSummarizer(prompt: string): Promise<string> {
-  const command = process.env.CAIRN_SUMMARIZE_COMMAND ?? "claude";
+  const command = process.env.KB_SUMMARIZE_COMMAND ?? "claude";
   const proc = Bun.spawn([command, "-p", "--model", "haiku"], {
     stdin: new Response(prompt),
     stdout: "pipe",
@@ -362,7 +362,7 @@ function reducePrompt(partials: string[]): string {
 }
 
 function promptPreamble(): string {
-  return `You are the Cairn session summarizer. Return markdown with "## Summary" and "## Extraction Candidates" sections. Do not wrap the output in a code fence.`;
+  return `You are the KB session summarizer. Return markdown with "## Summary" and "## Extraction Candidates" sections. Do not wrap the output in a code fence.`;
 }
 
 function stripModelFrontmatter(output: string): string {

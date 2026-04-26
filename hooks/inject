@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cairn injection hook — SessionStart and PostCompact
+# KB injection hook — SessionStart and PostCompact
 # Delegates to the TypeScript implementation for mode-aware injection
 # (eager | lazy | off), pointer payloads, and inject logging.
 #

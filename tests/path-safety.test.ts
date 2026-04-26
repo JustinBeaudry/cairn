@@ -19,7 +19,7 @@ afterEach(() => {
 });
 
 function tmp(): string {
-  const d = join(tmpdir(), `cairn-path-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const d = join(tmpdir(), `kb-path-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   mkdirSync(d, { recursive: true });
   dirs.push(d);
   return d;

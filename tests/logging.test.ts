@@ -13,9 +13,9 @@ afterEach(() => {
 });
 
 function makeVault(): string {
-  const dir = join(tmpdir(), `cairn-log-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const dir = join(tmpdir(), `kb-log-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   mkdirSync(join(dir, "wiki"), { recursive: true });
-  mkdirSync(join(dir, ".cairn"), { recursive: true });
+  mkdirSync(join(dir, ".kb"), { recursive: true });
   writeFileSync(join(dir, "wiki", "auth.md"), "# Auth\n\nOAuth2 content\n");
   writeFileSync(join(dir, "index.md"), "# Index\n\n## Arch\n- [[Auth]]\n");
   vaults.push(dir);
@@ -26,7 +26,7 @@ async function run(vault: string, cmd: string[]): Promise<{ stdout: string; exit
   const proc = Bun.spawn(["bun", "src/cli.ts", ...cmd], {
     stdout: "pipe",
     stderr: "pipe",
-    env: { ...process.env, CAIRN_VAULT: vault },
+    env: { ...process.env, KB_VAULT: vault },
   });
   const stdout = await new Response(proc.stdout).text();
   const exitCode = await proc.exited;
@@ -37,7 +37,7 @@ describe("access log — minimized entries", () => {
   it("recall appends a single JSONL entry with hash + len, never plaintext query", async () => {
     const vault = makeVault();
     await run(vault, ["recall", "SUPER_SECRET_QUERY"]);
-    const logPath = join(vault, ".cairn", "access-log.jsonl");
+    const logPath = join(vault, ".kb", "access-log.jsonl");
     expect(existsSync(logPath)).toBe(true);
     const raw = readFileSync(logPath, "utf-8");
     expect(raw).not.toContain("SUPER_SECRET_QUERY");
@@ -54,7 +54,7 @@ describe("access log — minimized entries", () => {
   it("get appends an access log entry", async () => {
     const vault = makeVault();
     await run(vault, ["get", "auth"]);
-    const raw = readFileSync(join(vault, ".cairn", "access-log.jsonl"), "utf-8");
+    const raw = readFileSync(join(vault, ".kb", "access-log.jsonl"), "utf-8");
     const entry = JSON.parse(raw.trim().split("\n").filter(Boolean)[0]!);
     expect(entry.command).toBe("get");
     expect(entry.pages_returned).toBe(1);
@@ -63,7 +63,7 @@ describe("access log — minimized entries", () => {
   it("list-topics appends an access log entry", async () => {
     const vault = makeVault();
     await run(vault, ["list-topics"]);
-    const raw = readFileSync(join(vault, ".cairn", "access-log.jsonl"), "utf-8");
+    const raw = readFileSync(join(vault, ".kb", "access-log.jsonl"), "utf-8");
     const entry = JSON.parse(raw.trim().split("\n").filter(Boolean)[0]!);
     expect(entry.command).toBe("list-topics");
   });
@@ -73,7 +73,7 @@ describe("access log — concurrency", () => {
   it("parallel recalls produce one valid JSONL line each", async () => {
     const vault = makeVault();
     await Promise.all(Array.from({ length: 5 }).map(() => run(vault, ["recall", "OAuth2"])));
-    const raw = readFileSync(join(vault, ".cairn", "access-log.jsonl"), "utf-8");
+    const raw = readFileSync(join(vault, ".kb", "access-log.jsonl"), "utf-8");
     const lines = raw.trim().split("\n").filter(Boolean);
     expect(lines.length).toBe(5);
     for (const line of lines) {
@@ -85,8 +85,8 @@ describe("access log — concurrency", () => {
 describe("log rotation", () => {
   it("rotates access-log.jsonl when size cap exceeded", async () => {
     const vault = makeVault();
-    const logPath = join(vault, ".cairn", "access-log.jsonl");
-    mkdirSync(join(vault, ".cairn"), { recursive: true });
+    const logPath = join(vault, ".kb", "access-log.jsonl");
+    mkdirSync(join(vault, ".kb"), { recursive: true });
     const bigLine = "x".repeat(3 * 1024 * 1024);
     writeFileSync(logPath, bigLine + "\n");
     expect(statSync(logPath).size).toBeGreaterThan(2 * 1024 * 1024);
@@ -102,8 +102,8 @@ describe("log rotation", () => {
 
   it("rotation preserves an older archive (overwrites existing .1)", async () => {
     const vault = makeVault();
-    const logPath = join(vault, ".cairn", "access-log.jsonl");
-    mkdirSync(join(vault, ".cairn"), { recursive: true });
+    const logPath = join(vault, ".kb", "access-log.jsonl");
+    mkdirSync(join(vault, ".kb"), { recursive: true });
     writeFileSync(logPath + ".1", "stale-archive\n");
     const bigLine = "y".repeat(3 * 1024 * 1024);
     writeFileSync(logPath, bigLine + "\n");

@@ -14,10 +14,10 @@ afterEach(() => {
 });
 
 function makeVault(): string {
-  const dir = join(tmpdir(), `cairn-read-session-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const dir = join(tmpdir(), `kb-read-session-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   mkdirSync(join(dir, "sessions"), { recursive: true });
   mkdirSync(join(dir, "raw"), { recursive: true });
-  mkdirSync(join(dir, ".cairn"), { recursive: true });
+  mkdirSync(join(dir, ".kb"), { recursive: true });
   writeFileSync(
     join(dir, "sessions", "2026-04-14T09-00-00.md"),
     Array.from({ length: 50 }, (_, i) => `session-line-${i + 1}`).join("\n")
@@ -32,7 +32,7 @@ async function run(vault: string, args: string[], env: Record<string, string> = 
     stdout: "pipe",
     stderr: "pipe",
     stdin: "ignore",
-    env: { ...process.env, CAIRN_VAULT: vault, ...env },
+    env: { ...process.env, KB_VAULT: vault, ...env },
   });
   const stdout = await new Response(proc.stdout).text();
   const stderr = await new Response(proc.stderr).text();

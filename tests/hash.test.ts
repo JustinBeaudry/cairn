@@ -9,7 +9,7 @@ describe("sha256File", () => {
   let dir: string;
 
   beforeEach(() => {
-    dir = mkdtempSync(join(tmpdir(), "cairn-hash-"));
+    dir = mkdtempSync(join(tmpdir(), "kb-hash-"));
   });
 
   afterEach(() => {
@@ -18,7 +18,7 @@ describe("sha256File", () => {
 
   it("returns the sha256 digest of a small file as a hex string", async () => {
     const path = join(dir, "small.txt");
-    const content = "hello cairn\n";
+    const content = "hello kb\n";
     writeFileSync(path, content);
 
     const expected = createHash("sha256").update(content).digest("hex");

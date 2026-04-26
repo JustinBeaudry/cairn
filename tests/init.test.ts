@@ -3,9 +3,9 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { existsSync, rmSync, mkdirSync, writeFileSync } from "node:fs";
 
-describe("cairn init (integration)", () => {
+describe("kb init (integration)", () => {
   it("should scaffold vault at custom path", async () => {
-    const vaultDir = join(tmpdir(), `cairn-init-${Date.now()}`);
+    const vaultDir = join(tmpdir(), `kb-init-${Date.now()}`);
 
     const proc = Bun.spawn(
       ["bun", "run", "src/cli.ts", "init", "--vault-path", vaultDir],
@@ -17,17 +17,17 @@ describe("cairn init (integration)", () => {
     expect(existsSync(join(vaultDir, "wiki"))).toBe(true);
     expect(existsSync(join(vaultDir, "raw"))).toBe(true);
     expect(existsSync(join(vaultDir, "sessions"))).toBe(true);
-    expect(existsSync(join(vaultDir, "CAIRN.md"))).toBe(true);
+    expect(existsSync(join(vaultDir, "KB.md"))).toBe(true);
     expect(existsSync(join(vaultDir, "index.md"))).toBe(true);
     expect(existsSync(join(vaultDir, "log.md"))).toBe(true);
     expect(existsSync(join(vaultDir, "context.md"))).toBe(true);
-    expect(existsSync(join(vaultDir, ".cairn", "state.json"))).toBe(true);
+    expect(existsSync(join(vaultDir, ".kb", "state.json"))).toBe(true);
 
     rmSync(vaultDir, { recursive: true });
   });
 
   it("should be idempotent on second run", async () => {
-    const vaultDir = join(tmpdir(), `cairn-init-${Date.now()}`);
+    const vaultDir = join(tmpdir(), `kb-init-${Date.now()}`);
 
     await Bun.spawn(
       ["bun", "run", "src/cli.ts", "init", "--vault-path", vaultDir],
@@ -45,7 +45,7 @@ describe("cairn init (integration)", () => {
   });
 
   it("should refuse occupied directory", async () => {
-    const vaultDir = join(tmpdir(), `cairn-init-${Date.now()}`);
+    const vaultDir = join(tmpdir(), `kb-init-${Date.now()}`);
     mkdirSync(vaultDir, { recursive: true });
     writeFileSync(join(vaultDir, "existing.txt"), "content");
 

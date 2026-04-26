@@ -10,7 +10,7 @@ import { resolveVaultPath as resolveProjectVaultPath } from "../lib/vault";
 function resolveVaultPath(argv: string[]): string {
   const arg = argv[0];
   if (arg) return arg;
-  const env = process.env.CAIRN_VAULT;
+  const env = process.env.KB_VAULT;
   if (env) return env;
   return resolveProjectVaultPath(process.cwd());
 }
@@ -64,7 +64,7 @@ function emitEmptyOnce(): void {
 
 async function main(): Promise<void> {
   const vaultPath = resolveVaultPath(process.argv.slice(2));
-  const parsedBudget = Number(process.env.CAIRN_BUDGET ?? DEFAULT_BUDGET);
+  const parsedBudget = Number(process.env.KB_BUDGET ?? DEFAULT_BUDGET);
   const budget =
     Number.isFinite(parsedBudget) && parsedBudget > 0 ? parsedBudget : DEFAULT_BUDGET;
 
@@ -75,7 +75,7 @@ async function main(): Promise<void> {
 
   let mode: ReturnType<typeof resolveInjectMode>;
   try {
-    mode = resolveInjectMode(vaultPath, process.env.CAIRN_INJECT_MODE);
+    mode = resolveInjectMode(vaultPath, process.env.KB_INJECT_MODE);
   } catch {
     mode = "eager";
   }

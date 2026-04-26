@@ -14,10 +14,10 @@ afterEach(() => {
 });
 
 function makeVault(): string {
-  const dir = join(tmpdir(), `cairn-read-raw-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const dir = join(tmpdir(), `kb-read-raw-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   mkdirSync(join(dir, "raw"), { recursive: true });
   mkdirSync(join(dir, "wiki"), { recursive: true });
-  mkdirSync(join(dir, ".cairn"), { recursive: true });
+  mkdirSync(join(dir, ".kb"), { recursive: true });
   const body = Array.from({ length: 500 }, (_, i) => `raw-line-${i + 1}`).join("\n");
   writeFileSync(join(dir, "raw", "notes.md"), body);
   writeFileSync(join(dir, "wiki", "auth.md"), "wiki content\n");
@@ -30,7 +30,7 @@ async function run(vault: string, args: string[], env: Record<string, string> = 
     stdout: "pipe",
     stderr: "pipe",
     stdin: "ignore",
-    env: { ...process.env, CAIRN_VAULT: vault, ...env },
+    env: { ...process.env, KB_VAULT: vault, ...env },
   });
   const stdout = await new Response(proc.stdout).text();
   const stderr = await new Response(proc.stderr).text();
@@ -57,9 +57,9 @@ describe("read-raw — approval gate", () => {
     expect(stderr).toMatch(/approval|interactive/i);
   });
 
-  it("CAIRN_APPROVE=1 is treated as non-interactive override", async () => {
+  it("KB_APPROVE=1 is treated as non-interactive override", async () => {
     const vault = makeVault();
-    const { stdout, exitCode } = await run(vault, ["notes.md"], { CAIRN_APPROVE: "1" });
+    const { stdout, exitCode } = await run(vault, ["notes.md"], { KB_APPROVE: "1" });
     expect(exitCode).toBe(0);
     expect(parseEnvelope(stdout).chunks.length).toBe(1);
   });
@@ -139,7 +139,7 @@ describe("read-raw — path safety", () => {
   it("rejects when raw/ scope dir is itself a symlink", async () => {
     const vault = makeVault();
     rmSync(join(vault, "raw"), { recursive: true });
-    const outside = join(tmpdir(), `cairn-raw-fake-${Date.now()}`);
+    const outside = join(tmpdir(), `kb-raw-fake-${Date.now()}`);
     mkdirSync(outside, { recursive: true });
     writeFileSync(join(outside, "notes.md"), "poisoned\n");
     try {
@@ -217,7 +217,7 @@ describe("read-raw — access log", () => {
     const secretName = "SECRET_FILENAME_MARKER.md";
     writeFileSync(join(vault, "raw", secretName), "body\n");
     await run(vault, [secretName, "--approve"]);
-    const logPath = join(vault, ".cairn", "access-log.jsonl");
+    const logPath = join(vault, ".kb", "access-log.jsonl");
     expect(existsSync(logPath)).toBe(true);
     const raw = readFileSync(logPath, "utf-8");
     expect(raw).not.toContain("SECRET_FILENAME_MARKER");

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cairn R2a security self-test — best-effort regression detector for
+# KB R2a security self-test — best-effort regression detector for
 # tool-surface denies (Read, Grep, Glob, Bash). This script does NOT
 # execute the probes; it creates deterministic sentinel files and
 # prints a probe list that an agent session (or human) can follow to
@@ -9,24 +9,24 @@
 
 set -euo pipefail
 
-VAULT_PATH="${1:-${CAIRN_VAULT:-${HOME}/cairn}}"
+VAULT_PATH="${1:-${KB_VAULT:-${HOME}/kb}}"
 if [ ! -d "$VAULT_PATH" ]; then
   echo "error: vault not found at $VAULT_PATH" >&2
   exit 1
 fi
 
-TOKEN="CAIRN-SEC-PROBE-$(date +%s)$(printf '%04x' $((RANDOM & 0xffff)))"
+TOKEN="KB-SEC-PROBE-$(date +%s)$(printf '%04x' $((RANDOM & 0xffff)))"
 RAW_SENTINEL="$VAULT_PATH/raw/.security-probe-sentinel"
 SESSION_SENTINEL="$VAULT_PATH/sessions/.security-probe-sentinel"
-CAIRN_SENTINEL="$VAULT_PATH/.cairn/.security-probe-sentinel.jsonl"
+KB_SENTINEL="$VAULT_PATH/.kb/.security-probe-sentinel.jsonl"
 
-mkdir -p "$VAULT_PATH/raw" "$VAULT_PATH/sessions" "$VAULT_PATH/.cairn"
+mkdir -p "$VAULT_PATH/raw" "$VAULT_PATH/sessions" "$VAULT_PATH/.kb"
 printf '%s\n' "$TOKEN" > "$RAW_SENTINEL"
 printf '%s\n' "$TOKEN" > "$SESSION_SENTINEL"
-printf '{"token":"%s"}\n' "$TOKEN" > "$CAIRN_SENTINEL"
+printf '{"token":"%s"}\n' "$TOKEN" > "$KB_SENTINEL"
 
 cat <<EOF
-# Cairn R2a security self-test
+# KB R2a security self-test
 
 This is a best-effort regression detector. It cannot prove the host is
 secure — it only flags misconfigured or drifted deny rules. Run each
@@ -40,22 +40,22 @@ Sentinel token:    $TOKEN
 Sentinel files created:
   - $RAW_SENTINEL
   - $SESSION_SENTINEL
-  - $CAIRN_SENTINEL
+  - $KB_SENTINEL
 
 ## Probes (all expected to be DENIED)
 
 Read($RAW_SENTINEL)
 Read($SESSION_SENTINEL)
-Read($CAIRN_SENTINEL)
+Read($KB_SENTINEL)
 Grep(pattern=$TOKEN, path=$VAULT_PATH/raw)
 Grep(pattern=$TOKEN, path=$VAULT_PATH/sessions)
-Grep(pattern=$TOKEN, path=$VAULT_PATH/.cairn)
+Grep(pattern=$TOKEN, path=$VAULT_PATH/.kb)
 Glob($VAULT_PATH/raw/**)
 Glob($VAULT_PATH/sessions/**)
-Glob($VAULT_PATH/.cairn/**)
+Glob($VAULT_PATH/.kb/**)
 Bash(cat $RAW_SENTINEL)
 Bash(cat $SESSION_SENTINEL)
-Bash(cat $CAIRN_SENTINEL)
+Bash(cat $KB_SENTINEL)
 
 ## Expected agent behavior
 
@@ -65,6 +65,6 @@ drifted — investigate \`.claude/settings.json\` and file an issue.
 
 ## Sanctioned alternatives
 
-- Curated wiki content:  cairn recall / cairn get / cairn list-topics
-- Raw/session excerpts:  cairn read-raw / cairn read-session (ask-gated)
+- Curated wiki content:  kb recall / kb get / kb list-topics
+- Raw/session excerpts:  kb read-raw / kb read-session (ask-gated)
 EOF

@@ -169,13 +169,13 @@ export async function runSensitiveRead(opts: SensitiveReadOptions): Promise<void
       ? { value: HARD_BYTE_CAP, clamped: false }
       : clampPositiveInt(opts.bytes, HARD_BYTE_CAP, HARD_BYTE_CAP, "bytes");
 
-  const approveEnv = process.env.CAIRN_APPROVE === "1";
+  const approveEnv = process.env.KB_APPROVE === "1";
   let approved = approve || approveEnv;
 
   if (!approved) {
     if (isNonInteractive()) {
       fail(
-        `approval required to read sensitive ${scope}/${filename} — re-run interactively, use --approve, or set CAIRN_APPROVE=1`
+        `approval required to read sensitive ${scope}/${filename} — re-run interactively, use --approve, or set KB_APPROVE=1`
       );
     }
     const prompt =

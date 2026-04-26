@@ -36,7 +36,7 @@ function makeVault(root: string): string {
   const vault = join(root, "vault");
   mkdirSync(join(vault, "sessions", "summaries"), { recursive: true });
   mkdirSync(join(vault, "sessions", ".trash"), { recursive: true });
-  mkdirSync(join(vault, ".cairn"), { recursive: true });
+  mkdirSync(join(vault, ".kb"), { recursive: true });
   writeFileSync(join(vault, "log.md"), "# Vault Log\n");
   return vault;
 }
@@ -101,7 +101,7 @@ console.log("## Summary\\n\\nFake summary " + digest + "\\n\\n## Extraction Cand
   return { path, log };
 }
 
-async function runCairn(
+async function runKb(
   env: Env,
   args: string[],
   extraEnv: Record<string, string> = {}
@@ -112,8 +112,8 @@ async function runCairn(
     stderr: "pipe",
     env: {
       ...process.env,
-      CAIRN_VAULT: env.vault,
-      CAIRN_SUMMARIZE_COMMAND: env.fakeClaude,
+      KB_VAULT: env.vault,
+      KB_SUMMARIZE_COMMAND: env.fakeClaude,
       FAKE_CLAUDE_LOG: env.fakeLog,
       ...extraEnv,
     },
@@ -131,11 +131,11 @@ function callCount(logPath: string): number {
   return readFileSync(logPath, "utf-8").split("---CALL---").length - 1;
 }
 
-describe("cairn summarize", () => {
+describe("kb summarize", () => {
   let env: Env;
 
   beforeEach(() => {
-    const root = join(tmpdir(), `cairn-summarize-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    const root = join(tmpdir(), `kb-summarize-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(root, { recursive: true });
     const vault = makeVault(root);
     const fake = makeFakeClaude(root);
@@ -150,8 +150,8 @@ describe("cairn summarize", () => {
   });
 
   it("writes a cached summary and short-circuits when manifest_hash matches", async () => {
-    const first = await runCairn(env, ["summarize", env.manifestPath]);
-    const second = await runCairn(env, ["summarize", env.manifestPath]);
+    const first = await runKb(env, ["summarize", env.manifestPath]);
+    const second = await runKb(env, ["summarize", env.manifestPath]);
 
     expect(first.exitCode).toBe(0);
     expect(second.exitCode).toBe(0);
@@ -163,7 +163,7 @@ describe("cairn summarize", () => {
   });
 
   it("emits one-line JSON when --json is set", async () => {
-    const result = await runCairn(env, ["summarize", "--json", env.manifestPath]);
+    const result = await runKb(env, ["summarize", "--json", env.manifestPath]);
 
     expect(result.exitCode).toBe(0);
     const parsed = JSON.parse(result.stdout.trim()) as { path: string; cached: boolean; degraded: boolean };
@@ -187,7 +187,7 @@ describe("cairn summarize", () => {
       "manual summary\n"
     );
 
-    const result = await runCairn(env, ["summarize", "--json", env.manifestPath]);
+    const result = await runKb(env, ["summarize", "--json", env.manifestPath]);
 
     expect(result.exitCode).toBe(0);
     const parsed = JSON.parse(result.stdout.trim()) as {
@@ -202,9 +202,9 @@ describe("cairn summarize", () => {
 
   it("resolves by full path, sessions-relative path, and session id prefix", async () => {
     const relative = `sessions/${basename(env.manifestPath)}`;
-    const byPath = await runCairn(env, ["summarize", env.manifestPath]);
-    const byRelative = await runCairn(env, ["summarize", relative]);
-    const byPrefix = await runCairn(env, ["summarize", env.sessionId.slice(0, 8)]);
+    const byPath = await runKb(env, ["summarize", env.manifestPath]);
+    const byRelative = await runKb(env, ["summarize", relative]);
+    const byPrefix = await runKb(env, ["summarize", env.sessionId.slice(0, 8)]);
 
     expect(byPath.exitCode).toBe(0);
     expect(byRelative.exitCode).toBe(0);
@@ -215,7 +215,7 @@ describe("cairn summarize", () => {
 
   it("falls back to manifest excerpt when the transcript hash no longer matches", async () => {
     writeFileSync(env.transcriptPath, "mutated");
-    const result = await runCairn(env, ["summarize", env.manifestPath]);
+    const result = await runKb(env, ["summarize", env.manifestPath]);
 
     expect(result.exitCode).toBe(0);
     const summaryPath = result.stdout.trim().split("\n").at(-1)!;
@@ -228,8 +228,8 @@ describe("cairn summarize", () => {
     const longTranscript = makeTranscript(env.root, ["a".repeat(800), "b".repeat(800), "c".repeat(800)]);
     env.manifestPath = writeSessionManifest(env.vault, longTranscript, "abcdef0123456789abcdef0123456789");
 
-    const result = await runCairn(env, ["summarize", env.manifestPath], {
-      CAIRN_SUMMARIZE_CHUNK_BYTES: "500",
+    const result = await runKb(env, ["summarize", env.manifestPath], {
+      KB_SUMMARIZE_CHUNK_BYTES: "500",
     });
 
     expect(result.exitCode).toBe(0);
@@ -242,7 +242,7 @@ describe("cairn summarize", () => {
   it("skips legacy session markdown when summarizing all manifests", async () => {
     writeFileSync(join(env.vault, "sessions", "legacy.md"), "Prompt is too long\n");
 
-    const result = await runCairn(env, ["summarize", "--all"]);
+    const result = await runKb(env, ["summarize", "--all"]);
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain(`[1/1] summarizing ${basename(env.manifestPath)}...`);
@@ -250,13 +250,13 @@ describe("cairn summarize", () => {
   });
 
   it("preserves user-edited summaries unless --force is used, then trashes first", async () => {
-    const first = await runCairn(env, ["summarize", env.manifestPath]);
+    const first = await runKb(env, ["summarize", env.manifestPath]);
     const summaryPath = first.stdout.trim().split("\n").at(-1)!;
     const { data } = readSummaryFrontmatter(summaryPath);
     writeSummaryFrontmatter(summaryPath, { ...data, user_edited: true }, "manual body\n");
 
-    const skipped = await runCairn(env, ["summarize", env.manifestPath]);
-    const forced = await runCairn(env, ["summarize", "--force", env.manifestPath]);
+    const skipped = await runKb(env, ["summarize", env.manifestPath]);
+    const forced = await runKb(env, ["summarize", "--force", env.manifestPath]);
 
     expect(skipped.stdout.trim()).toBe(summaryPath);
     expect(forced.exitCode).toBe(0);
@@ -265,7 +265,7 @@ describe("cairn summarize", () => {
   });
 
   it("exits non-zero without writing a summary when the summarizer command fails", async () => {
-    const result = await runCairn(env, ["summarize", env.manifestPath], {
+    const result = await runKb(env, ["summarize", env.manifestPath], {
       FAKE_CLAUDE_FAIL: "1",
     });
 
@@ -274,11 +274,11 @@ describe("cairn summarize", () => {
   });
 });
 
-describe("cairn summaries pin", () => {
+describe("kb summaries pin", () => {
   let env: Env;
 
   beforeEach(async () => {
-    const root = join(tmpdir(), `cairn-summaries-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    const root = join(tmpdir(), `kb-summaries-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(root, { recursive: true });
     const vault = makeVault(root);
     const fake = makeFakeClaude(root);
@@ -286,7 +286,7 @@ describe("cairn summaries pin", () => {
     const sessionId = "123e4567e89b12d3a456426614174000";
     const manifestPath = writeSessionManifest(vault, transcriptPath, sessionId);
     env = { root, vault, fakeClaude: fake.path, fakeLog: fake.log, manifestPath, transcriptPath, sessionId };
-    await runCairn(env, ["summarize", env.manifestPath]);
+    await runKb(env, ["summarize", env.manifestPath]);
   });
 
   afterEach(() => {
@@ -294,11 +294,11 @@ describe("cairn summaries pin", () => {
   });
 
   it("sets and clears user_edited on the cached summary", async () => {
-    const pin = await runCairn(env, ["summaries", "pin", env.manifestPath]);
+    const pin = await runKb(env, ["summaries", "pin", env.manifestPath]);
     const summaryPath = pin.stdout.trim().split("\n").at(-1)!;
     expect(readSummaryFrontmatter(summaryPath).data.user_edited).toBe(true);
 
-    const unpin = await runCairn(env, ["summaries", "unpin", env.manifestPath]);
+    const unpin = await runKb(env, ["summaries", "unpin", env.manifestPath]);
     expect(unpin.exitCode).toBe(0);
     expect(readSummaryFrontmatter(summaryPath).data.user_edited).toBe(false);
   });

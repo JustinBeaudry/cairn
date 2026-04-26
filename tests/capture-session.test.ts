@@ -20,11 +20,11 @@ interface TestEnv {
 }
 
 function makeVault(): string {
-  const dir = join(tmpdir(), `cairn-cap-vault-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const dir = join(tmpdir(), `kb-cap-vault-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   mkdirSync(join(dir, "sessions"), { recursive: true });
   mkdirSync(join(dir, "sessions", "summaries"), { recursive: true });
   mkdirSync(join(dir, "sessions", ".trash"), { recursive: true });
-  mkdirSync(join(dir, ".cairn"), { recursive: true });
+  mkdirSync(join(dir, ".kb"), { recursive: true });
   writeFileSync(join(dir, "log.md"), "# Vault Log\n");
   return dir;
 }
@@ -37,10 +37,10 @@ async function git(cwd: string, ...args: string[]): Promise<string> {
 }
 
 async function makeGitRepo(): Promise<string> {
-  const dir = join(tmpdir(), `cairn-cap-repo-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const dir = join(tmpdir(), `kb-cap-repo-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   mkdirSync(dir, { recursive: true });
   await git(dir, "init", "-q", "--initial-branch=main");
-  await git(dir, "config", "user.email", "test@cairn.local");
+  await git(dir, "config", "user.email", "test@kb.local");
   await git(dir, "config", "user.name", "Test");
   await git(dir, "config", "commit.gpgsign", "false");
   writeFileSync(join(dir, "seed.txt"), "seed");
@@ -79,7 +79,7 @@ async function runCapture(env: TestEnv, input: Stdin | string): Promise<{ exitCo
     stdout: "pipe",
     stderr: "pipe",
     cwd: env.cwd,
-    env: { ...process.env, CAIRN_VAULT: env.vault },
+    env: { ...process.env, KB_VAULT: env.vault },
   });
   const [stdout, stderr] = await Promise.all([
     new Response(proc.stdout).text(),
@@ -93,7 +93,7 @@ function listManifests(vault: string): string[] {
   return readdirSync(join(vault, "sessions")).filter((n) => n.endsWith(".md"));
 }
 
-describeGit("cairn capture-session", () => {
+describeGit("kb capture-session", () => {
   let env: TestEnv;
 
   beforeEach(async () => {
@@ -223,7 +223,7 @@ describeGit("cairn capture-session", () => {
   });
 
   it("writes a manifest with null git fields when cwd is not a git repo", async () => {
-    const noGitCwd = join(tmpdir(), `cairn-nogit-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    const noGitCwd = join(tmpdir(), `kb-nogit-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(noGitCwd, { recursive: true });
     try {
       const transcript = makeTranscript(noGitCwd, [{ type: "human", text: "hi" }]);
@@ -281,11 +281,11 @@ describeGit("cairn capture-session", () => {
     expect(manifest.excerpt).toEqual({ head: "", tail: "" });
   });
 
-  it("logs to .cairn/capture-errors.log and exits non-zero on non-JSON stdin", async () => {
+  it("logs to .kb/capture-errors.log and exits non-zero on non-JSON stdin", async () => {
     const { exitCode } = await runCapture(env, "this is not JSON");
     expect(exitCode).not.toBe(0);
 
-    const logPath = join(env.vault, ".cairn", "capture-errors.log");
+    const logPath = join(env.vault, ".kb", "capture-errors.log");
     expect(existsSync(logPath)).toBe(true);
     const content = readFileSync(logPath, "utf-8").trim();
     expect(content.length).toBeGreaterThan(0);

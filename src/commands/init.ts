@@ -3,7 +3,7 @@ import { resolveVaultPath, checkVaultState, scaffoldVault } from "../lib/vault";
 import { isQmdOnPath, QMD_INSTALL_HINT } from "../lib/qmd";
 
 export default defineCommand({
-  meta: { name: "init", description: "Initialize a Cairn vault" },
+  meta: { name: "init", description: "Initialize a KB vault" },
   args: {
     vaultPath: { type: "string", description: "Path to the vault directory", alias: ["p"] },
   },
@@ -20,19 +20,19 @@ export default defineCommand({
     }
     if (state === "occupied") {
       console.error(
-        `Error: ${vaultPath} already exists and wasn't created by Cairn.\n` +
+        `Error: ${vaultPath} already exists and wasn't created by KB.\n` +
           `Use --vault-path to specify a different location.`
       );
       process.exit(1);
     }
-    if (state === "cairn") {
-      console.log(`Cairn vault already initialized at ${vaultPath}.`);
+    if (state === "kb") {
+      console.log(`KB vault already initialized at ${vaultPath}.`);
       return;
     }
 
     const result = scaffoldVault(vaultPath);
 
-    console.log(`\nCairn vault initialized at ${vaultPath}\n`);
+    console.log(`\nKB vault initialized at ${vaultPath}\n`);
     if (result.created.length > 0) {
       console.log("Created:");
       for (const item of result.created) console.log(`  + ${item}`);
@@ -42,8 +42,8 @@ export default defineCommand({
       for (const item of result.skipped) console.log(`  - ${item}`);
     }
     console.log("\nNext steps:");
-    console.log("  1. Install the plugin: claude plugin add cairn");
-    console.log("  2. Drop a file in ~/cairn/raw/ and ask Claude to ingest it.");
+    console.log("  1. Install the plugin: claude plugin add kb");
+    console.log("  2. Drop a file in ~/kb/raw/ and ask Claude to ingest it.");
 
     if (!isQmdOnPath()) {
       console.log("");

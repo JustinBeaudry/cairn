@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } from "node:fs";
 
 function makeVault(): string {
-  const dir = join(tmpdir(), `cairn-inject-modes-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const dir = join(tmpdir(), `kb-inject-modes-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   mkdirSync(join(dir, "sessions"), { recursive: true });
   mkdirSync(join(dir, "wiki"), { recursive: true });
   writeFileSync(
@@ -69,9 +69,9 @@ async function runHook(vault: string, env: Record<string, string> = {}): Promise
 }
 
 describe("inject hook — mode: off", () => {
-  it("produces empty additionalContext when CAIRN_INJECT_MODE=off", async () => {
+  it("produces empty additionalContext when KB_INJECT_MODE=off", async () => {
     const vault = track(makeVault());
-    const { exitCode, output } = await runHook(vault, { CAIRN_INJECT_MODE: "off" });
+    const { exitCode, output } = await runHook(vault, { KB_INJECT_MODE: "off" });
     expect(exitCode).toBe(0);
     const json = JSON.parse(output);
     expect(json.hookSpecificOutput.additionalContext).toBe("");
@@ -81,7 +81,7 @@ describe("inject hook — mode: off", () => {
 describe("inject hook — mode: lazy (pointer payload)", () => {
   it("produces a pointer payload under 500 bytes", async () => {
     const vault = track(makeVault());
-    const { exitCode, output } = await runHook(vault, { CAIRN_INJECT_MODE: "lazy" });
+    const { exitCode, output } = await runHook(vault, { KB_INJECT_MODE: "lazy" });
     expect(exitCode).toBe(0);
     const json = JSON.parse(output);
     const ctx: string = json.hookSpecificOutput.additionalContext;
@@ -91,14 +91,14 @@ describe("inject hook — mode: lazy (pointer payload)", () => {
 
   it("includes a recall hint in the pointer payload", async () => {
     const vault = track(makeVault());
-    const { output } = await runHook(vault, { CAIRN_INJECT_MODE: "lazy" });
+    const { output } = await runHook(vault, { KB_INJECT_MODE: "lazy" });
     const ctx: string = JSON.parse(output).hookSpecificOutput.additionalContext;
-    expect(ctx).toMatch(/cairn recall/);
+    expect(ctx).toMatch(/kb recall/);
   });
 
   it("advertises top-N index headings when index.md present", async () => {
     const vault = track(makeVault());
-    const { output } = await runHook(vault, { CAIRN_INJECT_MODE: "lazy" });
+    const { output } = await runHook(vault, { KB_INJECT_MODE: "lazy" });
     const ctx: string = JSON.parse(output).hookSpecificOutput.additionalContext;
     expect(ctx).toContain("Architecture");
   });
@@ -106,11 +106,11 @@ describe("inject hook — mode: lazy (pointer payload)", () => {
   it("produces a pointer payload with no categories when index.md missing", async () => {
     const vault = track(makeVault());
     rmSync(join(vault, "index.md"));
-    const { exitCode, output } = await runHook(vault, { CAIRN_INJECT_MODE: "lazy" });
+    const { exitCode, output } = await runHook(vault, { KB_INJECT_MODE: "lazy" });
     expect(exitCode).toBe(0);
     const ctx: string = JSON.parse(output).hookSpecificOutput.additionalContext;
     expect(ctx.length).toBeGreaterThan(0);
-    expect(ctx).toMatch(/cairn recall/);
+    expect(ctx).toMatch(/kb recall/);
   });
 
   it("stays under budget even with many index headings", async () => {
@@ -118,7 +118,7 @@ describe("inject hook — mode: lazy (pointer payload)", () => {
     const headings: string[] = ["# Vault Index", ""];
     for (let i = 0; i < 100; i++) headings.push(`## Category${i}`, `- [[Page${i}]]`, "");
     writeFileSync(join(vault, "index.md"), headings.join("\n"));
-    const { output } = await runHook(vault, { CAIRN_INJECT_MODE: "lazy" });
+    const { output } = await runHook(vault, { KB_INJECT_MODE: "lazy" });
     const ctx: string = JSON.parse(output).hookSpecificOutput.additionalContext;
     expect(new TextEncoder().encode(ctx).length).toBeLessThan(500);
   });
@@ -126,7 +126,7 @@ describe("inject hook — mode: lazy (pointer payload)", () => {
   it("does not embed raw session or wiki contents", async () => {
     const vault = track(makeVault());
     writeFileSync(join(vault, "sessions", "2026-04-14T09-00-00.md"), "SECRET_SESSION_MARKER\n");
-    const { output } = await runHook(vault, { CAIRN_INJECT_MODE: "lazy" });
+    const { output } = await runHook(vault, { KB_INJECT_MODE: "lazy" });
     const ctx: string = JSON.parse(output).hookSpecificOutput.additionalContext;
     expect(ctx).not.toContain("SECRET_SESSION_MARKER");
     expect(ctx).not.toContain("Implemented auth flow");
@@ -144,9 +144,9 @@ describe("inject hook — mode: eager (default)", () => {
     expect(ctx).toContain("Architecture");
   });
 
-  it("respects CAIRN_INJECT_MODE=eager explicitly", async () => {
+  it("respects KB_INJECT_MODE=eager explicitly", async () => {
     const vault = track(makeVault());
-    const { output } = await runHook(vault, { CAIRN_INJECT_MODE: "eager" });
+    const { output } = await runHook(vault, { KB_INJECT_MODE: "eager" });
     const ctx: string = JSON.parse(output).hookSpecificOutput.additionalContext;
     expect(ctx).toContain("Working Set");
   });
@@ -155,28 +155,28 @@ describe("inject hook — mode: eager (default)", () => {
 describe("inject hook — mode precedence", () => {
   it("env overrides config.json", async () => {
     const vault = track(makeVault());
-    mkdirSync(join(vault, ".cairn"), { recursive: true });
-    writeFileSync(join(vault, ".cairn", "config.json"), JSON.stringify({ inject_mode: "eager" }));
-    const { output } = await runHook(vault, { CAIRN_INJECT_MODE: "lazy" });
+    mkdirSync(join(vault, ".kb"), { recursive: true });
+    writeFileSync(join(vault, ".kb", "config.json"), JSON.stringify({ inject_mode: "eager" }));
+    const { output } = await runHook(vault, { KB_INJECT_MODE: "lazy" });
     const ctx: string = JSON.parse(output).hookSpecificOutput.additionalContext;
     expect(new TextEncoder().encode(ctx).length).toBeLessThan(500);
-    expect(ctx).toMatch(/cairn recall/);
+    expect(ctx).toMatch(/kb recall/);
   });
 
   it("config.json used when env not set", async () => {
     const vault = track(makeVault());
-    mkdirSync(join(vault, ".cairn"), { recursive: true });
-    writeFileSync(join(vault, ".cairn", "config.json"), JSON.stringify({ inject_mode: "lazy" }));
+    mkdirSync(join(vault, ".kb"), { recursive: true });
+    writeFileSync(join(vault, ".kb", "config.json"), JSON.stringify({ inject_mode: "lazy" }));
     const { output } = await runHook(vault);
     const ctx: string = JSON.parse(output).hookSpecificOutput.additionalContext;
     expect(new TextEncoder().encode(ctx).length).toBeLessThan(500);
-    expect(ctx).toMatch(/cairn recall/);
+    expect(ctx).toMatch(/kb recall/);
   });
 
   it("invalid config.json falls through to default (eager)", async () => {
     const vault = track(makeVault());
-    mkdirSync(join(vault, ".cairn"), { recursive: true });
-    writeFileSync(join(vault, ".cairn", "config.json"), "{ not valid json");
+    mkdirSync(join(vault, ".kb"), { recursive: true });
+    writeFileSync(join(vault, ".kb", "config.json"), "{ not valid json");
     const { output } = await runHook(vault);
     const ctx: string = JSON.parse(output).hookSpecificOutput.additionalContext;
     expect(ctx).toContain("Working Set");
@@ -186,8 +186,8 @@ describe("inject hook — mode precedence", () => {
 describe("inject hook — logging", () => {
   it("appends a minimized JSONL line to inject-log.jsonl", async () => {
     const vault = track(makeVault());
-    await runHook(vault, { CAIRN_INJECT_MODE: "lazy" });
-    const logPath = join(vault, ".cairn", "inject-log.jsonl");
+    await runHook(vault, { KB_INJECT_MODE: "lazy" });
+    const logPath = join(vault, ".kb", "inject-log.jsonl");
     expect(existsSync(logPath)).toBe(true);
     const lines = readFileSync(logPath, "utf-8").trim().split("\n").filter(Boolean);
     expect(lines.length).toBe(1);
@@ -202,18 +202,18 @@ describe("inject hook — logging", () => {
   it("does not embed query or content strings in log entries", async () => {
     const vault = track(makeVault());
     writeFileSync(join(vault, "index.md"), "# Vault Index\n\n## SECRET_HEADING_MARKER\n");
-    await runHook(vault, { CAIRN_INJECT_MODE: "eager" });
-    const logPath = join(vault, ".cairn", "inject-log.jsonl");
+    await runHook(vault, { KB_INJECT_MODE: "eager" });
+    const logPath = join(vault, ".kb", "inject-log.jsonl");
     const raw = readFileSync(logPath, "utf-8");
     expect(raw).not.toContain("SECRET_HEADING_MARKER");
   });
 
   it("multiple inject calls append, do not overwrite", async () => {
     const vault = track(makeVault());
-    await runHook(vault, { CAIRN_INJECT_MODE: "lazy" });
-    await runHook(vault, { CAIRN_INJECT_MODE: "off" });
-    await runHook(vault, { CAIRN_INJECT_MODE: "eager" });
-    const logPath = join(vault, ".cairn", "inject-log.jsonl");
+    await runHook(vault, { KB_INJECT_MODE: "lazy" });
+    await runHook(vault, { KB_INJECT_MODE: "off" });
+    await runHook(vault, { KB_INJECT_MODE: "eager" });
+    const logPath = join(vault, ".kb", "inject-log.jsonl");
     const lines = readFileSync(logPath, "utf-8").trim().split("\n").filter(Boolean);
     expect(lines.length).toBe(3);
     const modes = lines.map((l) => JSON.parse(l).mode);
@@ -225,9 +225,9 @@ describe("inject hook — concurrency", () => {
   it("concurrent invocations produce valid JSONL (one entry per call)", async () => {
     const vault = track(makeVault());
     await Promise.all(
-      Array.from({ length: 5 }).map(() => runHook(vault, { CAIRN_INJECT_MODE: "lazy" }))
+      Array.from({ length: 5 }).map(() => runHook(vault, { KB_INJECT_MODE: "lazy" }))
     );
-    const logPath = join(vault, ".cairn", "inject-log.jsonl");
+    const logPath = join(vault, ".kb", "inject-log.jsonl");
     const raw = readFileSync(logPath, "utf-8");
     const lines = raw.trim().split("\n").filter(Boolean);
     expect(lines.length).toBe(5);

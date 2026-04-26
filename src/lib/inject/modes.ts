@@ -15,7 +15,7 @@ export function resolveInjectMode(vaultPath: string, envValue: string | undefine
   const fromEnv = parseMode(envValue);
   if (fromEnv) return fromEnv;
 
-  const configPath = join(vaultPath, ".cairn", "config.json");
+  const configPath = join(vaultPath, ".kb", "config.json");
   if (existsSync(configPath)) {
     try {
       const raw = readFileSync(configPath, "utf-8");

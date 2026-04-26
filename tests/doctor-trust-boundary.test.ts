@@ -12,17 +12,17 @@ afterEach(() => {
   }
 });
 
-function makeCairnVault(parent: string): string {
+function makeKbVault(parent: string): string {
   const dir = join(parent, `v-${Date.now()}-${Math.random().toString(36).slice(2)}`);
-  mkdirSync(join(dir, ".cairn"), { recursive: true });
+  mkdirSync(join(dir, ".kb"), { recursive: true });
   mkdirSync(join(dir, "wiki"), { recursive: true });
   mkdirSync(join(dir, "raw"), { recursive: true });
   mkdirSync(join(dir, "sessions"), { recursive: true });
   writeFileSync(
-    join(dir, ".cairn", "state.json"),
+    join(dir, ".kb", "state.json"),
     JSON.stringify({ version: "0.6.0", vaultPath: dir, createdAt: new Date().toISOString() })
   );
-  writeFileSync(join(dir, "CAIRN.md"), "");
+  writeFileSync(join(dir, "KB.md"), "");
   writeFileSync(join(dir, "index.md"), "");
   writeFileSync(join(dir, "log.md"), "");
   writeFileSync(join(dir, "context.md"), "");
@@ -42,18 +42,18 @@ async function runDoctor(vault: string): Promise<{ stdout: string; exitCode: num
 
 describe("doctor — trust boundary", () => {
   it("warns when the vault path does not match the default deny globs", async () => {
-    const nonDefault = join(tmpdir(), `notes-outside-cairn-${Date.now()}`);
-    const vault = makeCairnVault(nonDefault);
+    const nonDefault = join(tmpdir(), `notes-outside-kb-${Date.now()}`);
+    const vault = makeKbVault(nonDefault);
     mkdirSync(nonDefault, { recursive: true });
     const { stdout } = await runDoctor(vault);
     expect(stdout).toMatch(/vault path outside default deny globs|deny rules will not fire/);
     vaults.push(nonDefault);
   });
 
-  it("does not warn when the vault path contains a 'cairn' segment", async () => {
-    const parent = join(tmpdir(), `doctor-${Date.now()}`, "cairn");
+  it("does not warn when the vault path contains a 'kb' segment", async () => {
+    const parent = join(tmpdir(), `doctor-${Date.now()}`, "kb");
     mkdirSync(parent, { recursive: true });
-    const vault = makeCairnVault(parent);
+    const vault = makeKbVault(parent);
     const { stdout } = await runDoctor(vault);
     expect(stdout).not.toMatch(/vault path outside default deny globs/);
     vaults.push(parent);
