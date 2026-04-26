@@ -19,9 +19,9 @@ async function git(cwd: string, ...args: string[]): Promise<string> {
 }
 
 async function makeGitRepo(): Promise<string> {
-  const dir = mkdtempSync(join(tmpdir(), "cairn-git-"));
+  const dir = mkdtempSync(join(tmpdir(), "kb-git-"));
   await git(dir, "init", "-q", "--initial-branch=main");
-  await git(dir, "config", "user.email", "test@cairn.local");
+  await git(dir, "config", "user.email", "test@kb.local");
   await git(dir, "config", "user.name", "Test");
   await git(dir, "config", "commit.gpgsign", "false");
   return dir;
@@ -44,7 +44,7 @@ describeGit("headCommit", () => {
   });
 
   it("returns null in a non-git directory", async () => {
-    dir = mkdtempSync(join(tmpdir(), "cairn-nogit-"));
+    dir = mkdtempSync(join(tmpdir(), "kb-nogit-"));
     const sha = await headCommit(dir);
     expect(sha).toBeNull();
   });
@@ -71,7 +71,7 @@ describeGit("currentBranch", () => {
   });
 
   it("returns null in a non-git directory", async () => {
-    dir = mkdtempSync(join(tmpdir(), "cairn-nogit-"));
+    dir = mkdtempSync(join(tmpdir(), "kb-nogit-"));
     const branch = await currentBranch(dir);
     expect(branch).toBeNull();
   });
@@ -118,7 +118,7 @@ describeGit("filesChangedSince", () => {
   });
 
   it("returns empty array in non-git dir", async () => {
-    dir = mkdtempSync(join(tmpdir(), "cairn-nogit-"));
+    dir = mkdtempSync(join(tmpdir(), "kb-nogit-"));
     const changes = await filesChangedSince("deadbeef", dir);
     expect(changes).toEqual([]);
   });
@@ -170,7 +170,7 @@ describeGit("uncommittedChanges", () => {
   });
 
   it("returns empty array in non-git dir", async () => {
-    dir = mkdtempSync(join(tmpdir(), "cairn-nogit-"));
+    dir = mkdtempSync(join(tmpdir(), "kb-nogit-"));
     const changes = await uncommittedChanges(dir);
     expect(changes).toEqual([]);
   });

@@ -1,4 +1,4 @@
-# Cairn
+# KB
 
 A persistent memory plugin for Claude Code. Markdown vault maintained by
 your agent across sessions. Based on [Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
@@ -8,26 +8,26 @@ your agent across sessions. Based on [Karpathy's LLM Wiki pattern](https://gist.
 - **SessionStart hook** injects working set, index, and recent session summaries or manifests (priority order)
 - **Stop hook** writes a small session manifest when you finish working
 - **PostCompact hook** re-injects vault context after compaction (solves compaction amnesia)
-- **CAIRN.md template** teaches Claude to ingest sources, answer queries, and lint your vault
+- **KB.md template** teaches Claude to ingest sources, answer queries, and lint your vault
 
 ## Install
 
 ```bash
-bunx cairn init
+bunx kb init
 ```
 
-Scaffolds `~/cairn` with vault structure and registers hooks in Claude Code.
+Scaffolds `~/kb` with vault structure and registers hooks in Claude Code.
 Safe to run again — idempotent.
 
 ### Custom vault path
 
 ```bash
-bunx cairn init --vault-path /path/to/vault
+bunx kb init --vault-path /path/to/vault
 ```
 
 ### Per-project vault
 
-Create a `.cairn` file in your project root containing the vault path:
+Create a `.kb` file in your project root containing the vault path:
 
 ```
 /path/to/project/vault
@@ -74,12 +74,12 @@ Extract knowledge from session manifests into wiki pages:
 
 > "Extract from sessions"
 
-Sessions are sources. Claude asks `cairn summarize` to lazily create cached
+Sessions are sources. Claude asks `kb summarize` to lazily create cached
 summaries for unprocessed manifests, presents extraction candidates (entities,
 concepts, decisions, patterns), and runs the standard ingest workflow on
 confirmed items.
 
-Toggle session-start nudge: `/cairn:extract on` or `/cairn:extract off`.
+Toggle session-start nudge: `/kb:extract on` or `/kb:extract off`.
 
 ## Page types
 
@@ -93,13 +93,13 @@ Every wiki page has a `type` in frontmatter:
 | `comparison` | X vs Y trade-off analysis |
 | `overview` | Guided index of a topic area |
 
-Each type has a structural template defined in CAIRN.md with recommended sections.
+Each type has a structural template defined in KB.md with recommended sections.
 
 ## Vault structure
 
 ```
-~/cairn/
-  CAIRN.md        # Schema — conventions, workflows, rules
+~/kb/
+  KB.md        # Schema — conventions, workflows, rules
   context.md      # Working set — current focus areas (injected first)
   index.md        # Categorized pointer index, grouped by topic
   log.md          # Chronological operation log (heading-level entries)
@@ -113,7 +113,7 @@ Each type has a structural template defined in CAIRN.md with recommended section
 ## Context injection
 
 Inject hook reads vault in priority order under a 32KB budget (configurable
-via `CAIRN_BUDGET` env var; `cairn doctor` warns when the budget is under
+via `KB_BUDGET` env var; `kb doctor` warns when the budget is under
 pressure):
 
 1. **`context.md`** — working set, always first
@@ -130,7 +130,7 @@ BM25 + vector hybrid search over markdown files.
 npm install -g @tobilu/qmd
 
 # Register vault
-qmd collection add ~/cairn --name cairn --mask "**/*.md"
+qmd collection add ~/kb --name kb --mask "**/*.md"
 qmd embed
 
 # Add MCP server to Claude Code
@@ -144,13 +144,13 @@ When qmd MCP tools are available, Query and Refine workflows use
 ## Model choice
 
 Stop hooks do not call an LLM. Summaries are generated on demand by
-`cairn summarize`, which calls `claude -p --model haiku` by default. For tests
-or custom integrations, set `CAIRN_SUMMARIZE_COMMAND` to a compatible command.
+`kb summarize`, which calls `claude -p --model haiku` by default. For tests
+or custom integrations, set `KB_SUMMARIZE_COMMAND` to a compatible command.
 
 ## Uninstall
 
 ```bash
-bunx cairn uninstall
+bunx kb uninstall
 ```
 
 Removes hooks from Claude Code. Your vault is preserved.

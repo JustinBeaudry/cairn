@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { mkdirSync, writeFileSync, rmSync } from "node:fs";
 
 function makeTestVault(): string {
-  const dir = join(tmpdir(), `cairn-inject-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const dir = join(tmpdir(), `kb-inject-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   mkdirSync(join(dir, "sessions"), { recursive: true });
   writeFileSync(
     join(dir, "context.md"),
@@ -46,7 +46,7 @@ describe("inject hook", () => {
   });
 
   it("should exit 0 with empty context when vault missing", async () => {
-    const proc = Bun.spawn(["bash", "hooks/inject", "/tmp/nonexistent-cairn-vault-" + Date.now()], {
+    const proc = Bun.spawn(["bash", "hooks/inject", "/tmp/nonexistent-kb-vault-" + Date.now()], {
       stdout: "pipe",
       stderr: "pipe",
     });
@@ -72,7 +72,7 @@ describe("inject hook", () => {
     const proc = Bun.spawn(["bash", "hooks/inject", vault], {
       stdout: "pipe",
       stderr: "pipe",
-      env: { ...process.env, CAIRN_BUDGET: "2048" },
+      env: { ...process.env, KB_BUDGET: "2048" },
     });
     const output = await new Response(proc.stdout).text();
     const json = JSON.parse(output);

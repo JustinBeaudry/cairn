@@ -17,13 +17,13 @@ interface Env {
 }
 
 function makeVault(): Env {
-  const root = join(tmpdir(), `cairn-doctor-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const root = join(tmpdir(), `kb-doctor-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   const vault = join(root, "vault");
-  mkdirSync(join(vault, ".cairn", "sessions"), { recursive: true });
+  mkdirSync(join(vault, ".kb", "sessions"), { recursive: true });
   mkdirSync(join(vault, "wiki"), { recursive: true });
   mkdirSync(join(vault, "sessions", "summaries"), { recursive: true });
   mkdirSync(join(vault, "sessions", ".trash"), { recursive: true });
-  writeFileSync(join(vault, ".cairn", "state.json"), JSON.stringify({ createdAt: "2026-04-21T00:00:00Z" }));
+  writeFileSync(join(vault, ".kb", "state.json"), JSON.stringify({ createdAt: "2026-04-21T00:00:00Z" }));
   writeFileSync(join(vault, "log.md"), "# Vault Log\n");
   return { root, vault };
 }
@@ -57,7 +57,7 @@ async function runDoctor(
     cwd: env.root,
     stdout: "pipe",
     stderr: "pipe",
-    env: { ...process.env, CAIRN_VAULT: env.vault, ...extraEnv },
+    env: { ...process.env, KB_VAULT: env.vault, ...extraEnv },
   });
   const [stdout, stderr] = await Promise.all([
     new Response(proc.stdout).text(),
@@ -67,7 +67,7 @@ async function runDoctor(
   return { exitCode, stdout, stderr };
 }
 
-describe("cairn doctor session health", () => {
+describe("kb doctor session health", () => {
   let env: Env;
 
   beforeEach(() => {
@@ -90,7 +90,7 @@ describe("cairn doctor session health", () => {
 
   it("warns on recent capture errors and ignores old ones", async () => {
     writeFileSync(
-      join(env.vault, ".cairn", "capture-errors.log"),
+      join(env.vault, ".kb", "capture-errors.log"),
       [
         JSON.stringify({ ts: new Date().toISOString(), error: "recent" }),
         JSON.stringify({ ts: "2020-01-01T00:00:00.000Z", error: "old" }),
@@ -119,7 +119,7 @@ describe("cairn doctor session health", () => {
     writeFileSync(join(env.vault, "context.md"), "x".repeat(512));
     writeFileSync(join(env.vault, "index.md"), "y".repeat(10_000));
 
-    const result = await runDoctor(env, { CAIRN_BUDGET: "2048" });
+    const result = await runDoctor(env, { KB_BUDGET: "2048" });
 
     expect(result.stdout).toContain("inject budget exhausted by core vault");
     expect(result.stdout).toContain("10512/2048");
@@ -128,21 +128,21 @@ describe("cairn doctor session health", () => {
   it("warns when core vault content fills 80%+ of the inject budget", async () => {
     writeFileSync(join(env.vault, "index.md"), "z".repeat(1800));
 
-    const result = await runDoctor(env, { CAIRN_BUDGET: "2048" });
+    const result = await runDoctor(env, { KB_BUDGET: "2048" });
 
     expect(result.stdout).toContain("inject budget under pressure");
     expect(result.stdout).toMatch(/1800\/2048/);
   });
 
   it("reports inject budget headroom on a small vault", async () => {
-    const result = await runDoctor(env, { CAIRN_BUDGET: "8192" });
+    const result = await runDoctor(env, { KB_BUDGET: "8192" });
 
     expect(result.stdout).toContain("inject budget headroom");
     expect(result.stdout).toContain("0/8192");
   });
 
   it("deletes stale session lockfiles", async () => {
-    const lockPath = join(env.vault, ".cairn", "sessions", "stale.lock");
+    const lockPath = join(env.vault, ".kb", "sessions", "stale.lock");
     writeFileSync(lockPath, JSON.stringify({ pid: 123, createdAt: "2020-01-01T00:00:00.000Z" }));
 
     const result = await runDoctor(env);

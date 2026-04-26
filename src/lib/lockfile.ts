@@ -116,7 +116,7 @@ export async function withLogLock<T>(
   fn: () => Promise<T>,
   opts: LockOptions = {}
 ): Promise<T> {
-  return withExclusiveLock(join(vaultPath, ".cairn", "log.lock"), fn, opts);
+  return withExclusiveLock(join(vaultPath, ".kb", "log.lock"), fn, opts);
 }
 
 export async function withMigrationLock<T>(
@@ -124,5 +124,5 @@ export async function withMigrationLock<T>(
   fn: () => Promise<T>,
   opts: LockOptions = {}
 ): Promise<T> {
-  return withExclusiveLock(join(vaultPath, ".cairn", "migration.lock"), fn, opts);
+  return withExclusiveLock(join(vaultPath, ".kb", "migration.lock"), fn, opts);
 }

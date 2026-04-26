@@ -1,7 +1,7 @@
 /**
  * Entire CLI detection and checkpoint resolution.
  *
- * Gateway utilities — Cairn never parses Entire's internal formats directly.
+ * Gateway utilities — KB never parses Entire's internal formats directly.
  * All data flows through `entire explain` or `entire sessions info`.
  */
 

@@ -1,11 +1,11 @@
 {
-  "name": "cairn",
+  "name": "kb",
   "owner": {
     "name": "Justin Beaudry"
   },
   "plugins": [
     {
-      "name": "cairn",
+      "name": "kb",
       "source": "./",
       "description": "Persistent memory vault for Claude Code. Markdown-based, session-aware, compaction-resilient.",
       "license": "MIT",

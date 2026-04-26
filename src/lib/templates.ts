@@ -6,8 +6,8 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TEMPLATES_DIR = join(__dirname, "..", "..", "templates");
 
-export function getCairnMdTemplate(): string {
-  return readFileSync(join(TEMPLATES_DIR, "CAIRN.md"), "utf-8");
+export function getKbMdTemplate(): string {
+  return readFileSync(join(TEMPLATES_DIR, "KB.md"), "utf-8");
 }
 
 export const INDEX_MD_STUB = `# Vault Index

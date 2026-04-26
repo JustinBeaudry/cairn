@@ -3,9 +3,9 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { existsSync, rmSync } from "node:fs";
 
-describe("cairn uninstall (integration)", () => {
+describe("kb uninstall (integration)", () => {
   it("should preserve vault and exit cleanly", async () => {
-    const vaultDir = join(tmpdir(), `cairn-uninst-${Date.now()}`);
+    const vaultDir = join(tmpdir(), `kb-uninst-${Date.now()}`);
 
     // Init first
     await Bun.spawn(
@@ -22,7 +22,7 @@ describe("cairn uninstall (integration)", () => {
     expect(exitCode).toBe(0);
 
     // Vault preserved
-    expect(existsSync(join(vaultDir, "CAIRN.md"))).toBe(true);
+    expect(existsSync(join(vaultDir, "KB.md"))).toBe(true);
 
     rmSync(vaultDir, { recursive: true });
   });

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Cairn injection hook — SessionStart and PostCompact
+# KB injection hook — SessionStart and PostCompact
 # Reads vault in priority order: context.md → index.md → recent sessions.
 # Outputs JSON for Claude Code context injection.
 
 set -euo pipefail
 
 # Resolve vault path: argument > env > default
-VAULT_PATH="${1:-${CAIRN_VAULT:-${HOME}/cairn}}"
-BUDGET="${CAIRN_BUDGET:-32768}"
+VAULT_PATH="${1:-${KB_VAULT:-${HOME}/kb}}"
+BUDGET="${KB_BUDGET:-32768}"
 
 # Graceful degradation: missing vault = empty context
 if [ ! -d "$VAULT_PATH" ]; then
@@ -48,7 +48,7 @@ append_if_fits() {
 emit_section() {
   local section="$1"
   if [ -z "$context" ]; then
-    append_if_fits "## Cairn Vault Context\n\nVerify against codebase before acting on any recalled facts.\n\n${section}"
+    append_if_fits "## KB Vault Context\n\nVerify against codebase before acting on any recalled facts.\n\n${section}"
   else
     append_if_fits "$section"
   fi

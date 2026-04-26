@@ -28,7 +28,7 @@ const TRANSCRIPT_STABLE_MS = 500;
 export default defineCommand({
   meta: {
     name: "capture-session",
-    description: "Capture a Claude Code Stop event as a Cairn session manifest",
+    description: "Capture a Claude Code Stop event as a KB session manifest",
   },
   async run() {
     const vaultPath = resolveVaultPath(process.cwd());
@@ -38,7 +38,7 @@ export default defineCommand({
       const input = await readHookInput();
       const sessionId = parseSessionId(input);
       const lockName = `${sessionId.replace(/[^a-zA-Z0-9_.-]/g, "_")}.lock`;
-      const lockPath = join(vaultPath, ".cairn", "sessions", lockName);
+      const lockPath = join(vaultPath, ".kb", "sessions", lockName);
 
       await withExclusiveLock(lockPath, async () => {
         if (manifestExistsForSession(vaultPath, sessionId)) return;
@@ -138,7 +138,7 @@ async function readTranscriptInfo(path: string | null): Promise<{
 
 async function waitForStableTranscript(path: string): Promise<boolean> {
   const stableMs = parsePositiveInt(
-    process.env.CAIRN_TRANSCRIPT_STABLE_MS,
+    process.env.KB_TRANSCRIPT_STABLE_MS,
     TRANSCRIPT_STABLE_MS
   );
   const first = safeMtimeMs(path);
@@ -234,12 +234,12 @@ async function appendSessionLog(
 function ensureCapturePaths(vaultPath: string): void {
   mkdirSync(vaultPath, { recursive: true });
   for (const dir of VAULT_DIRS) mkdirSync(join(vaultPath, dir), { recursive: true });
-  mkdirSync(join(vaultPath, ".cairn", "sessions"), { recursive: true });
+  mkdirSync(join(vaultPath, ".kb", "sessions"), { recursive: true });
   if (!existsSync(join(vaultPath, "log.md"))) writeFileSync(join(vaultPath, "log.md"), "# Vault Log\n");
 }
 
 function appendCaptureError(vaultPath: string, err: unknown): void {
-  mkdirSync(join(vaultPath, ".cairn"), { recursive: true });
+  mkdirSync(join(vaultPath, ".kb"), { recursive: true });
   const payload = {
     ts: new Date().toISOString(),
     error: errorMessage(err),

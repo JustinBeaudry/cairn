@@ -16,11 +16,11 @@ const HOOK_PATH = "hooks/session-summary";
 function makeTestVault(): string {
   const dir = join(
     tmpdir(),
-    `cairn-session-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    `kb-session-${Date.now()}-${Math.random().toString(36).slice(2)}`
   );
   mkdirSync(join(dir, "sessions", "summaries"), { recursive: true });
   mkdirSync(join(dir, "sessions", ".trash"), { recursive: true });
-  mkdirSync(join(dir, ".cairn"), { recursive: true });
+  mkdirSync(join(dir, ".kb"), { recursive: true });
   writeFileSync(join(dir, "log.md"), "# Vault Log\n");
   return dir;
 }
@@ -52,7 +52,7 @@ async function runHook(vault: string, input: string): Promise<number> {
     stdin: new Response(input),
     stdout: "pipe",
     stderr: "pipe",
-    env: { ...process.env, CAIRN_VAULT: vault },
+    env: { ...process.env, KB_VAULT: vault },
   });
   await Promise.all([
     new Response(proc.stdout).text(),
@@ -76,7 +76,7 @@ describe("session-summary hook", () => {
     rmSync(vault, { recursive: true, force: true });
   });
 
-  it("forwards Stop input to cairn capture-session and exits 0", async () => {
+  it("forwards Stop input to kb capture-session and exits 0", async () => {
     const transcriptPath = makeTranscript(vault, [
       { type: "human", content: "Implement auth flow" },
       { type: "assistant", content: "I'll set up OAuth2 with PKCE." },
@@ -100,7 +100,7 @@ describe("session-summary hook", () => {
     const exitCode = await runHook(vault, "not json");
 
     expect(exitCode).toBe(0);
-    const errorLog = join(vault, ".cairn", "capture-errors.log");
+    const errorLog = join(vault, ".kb", "capture-errors.log");
     expect(existsSync(errorLog)).toBe(true);
     expect(readFileSync(errorLog, "utf-8")).toContain("expected JSON");
   });

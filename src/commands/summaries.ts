@@ -10,7 +10,7 @@ export default defineCommand({
 
     try {
       if ((action !== "pin" && action !== "unpin") || !session) {
-        throw new Error("usage: cairn summaries pin|unpin <session>");
+        throw new Error("usage: kb summaries pin|unpin <session>");
       }
       const path = setSummaryPinned(vaultPath, session, action === "pin");
       console.log(path);

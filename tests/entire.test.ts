@@ -7,7 +7,7 @@ describe("entire detection", () => {
   let testDir: string;
 
   beforeEach(() => {
-    testDir = join(tmpdir(), `cairn-entire-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    testDir = join(tmpdir(), `kb-entire-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(testDir, { recursive: true });
   });
 
@@ -34,7 +34,7 @@ describe("entire detection", () => {
     it("should return true when entire is enabled in project", async () => {
       if (!Bun.which("entire")) return;
       const { isEntireEnabled } = await import("../src/lib/entire");
-      // This test runs in the cairn project which has entire enabled
+      // This test runs in the kb project which has entire enabled
       const result = await isEntireEnabled(process.cwd());
       expect(result).toBe(true);
     });

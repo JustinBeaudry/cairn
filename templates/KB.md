@@ -1,4 +1,4 @@
-# Cairn — Knowledge Vault
+# KB — Knowledge Vault
 
 This file defines how you interact with this vault. Follow these conventions exactly.
 
@@ -8,9 +8,9 @@ This file defines how you interact with this vault. Follow these conventions exa
 |------------------|---------|------------|
 | `wiki/` | Knowledge pages — entities, concepts, summaries, comparisons, overviews | Agent |
 | `raw/` | Archived source documents — originals preserved for provenance | Agent (copies here during ingest) |
-| `sessions/<name>.md` | Session manifests — durable pointers to transcripts, git state, and excerpts | Agent (via Stop hook -> `cairn capture-session`) |
-| `sessions/summaries/<name>.md` | Cached summaries derived from manifests; regenerable unless pinned | Agent (via `cairn summarize`) |
-| `sessions/.trash/` | Migration quarantine and non-destructive summary replacements | Cairn CLI |
+| `sessions/<name>.md` | Session manifests — durable pointers to transcripts, git state, and excerpts | Agent (via Stop hook -> `kb capture-session`) |
+| `sessions/summaries/<name>.md` | Cached summaries derived from manifests; regenerable unless pinned | Agent (via `kb summarize`) |
+| `sessions/.trash/` | Migration quarantine and non-destructive summary replacements | KB CLI |
 | `context.md` | Working set — current focus areas for context injection | Agent (with user direction) |
 | `index.md` | Categorized pointer index — one-line entry per wiki page | Agent |
 | `log.md` | Chronological record — append-only, heading-level entries | Agent |
@@ -286,7 +286,7 @@ When the user asks you to lint the vault:
 
 ### Refine
 
-When the user asks you to refine the vault (or runs `/cairn:refine`):
+When the user asks you to refine the vault (or runs `/kb:refine`):
 
 1. Run the vault health dashboard (same as lint step 1) to establish baseline.
 2. **Stale pages**: find pages with `updated` older than 30 days. For each, check if the content is still accurate. Present stale pages to the user with a recommendation: update, archive, or leave.
@@ -360,7 +360,7 @@ When [qmd](https://github.com/qntx-labs/qmd) is available (via MCP tools `qmd_se
 ### Setup (user responsibility)
 
 1. Install qmd: `npm install -g @tobilu/qmd`
-2. Register the vault: `qmd collection add ~/cairn --name cairn --mask "**/*.md"`
+2. Register the vault: `qmd collection add ~/kb --name kb --mask "**/*.md"`
 3. Generate embeddings: `qmd embed`
 4. Add MCP server to Claude Code config:
    ```json

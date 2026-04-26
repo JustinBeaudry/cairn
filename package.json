@@ -1,11 +1,11 @@
 {
-  "name": "cairn",
+  "name": "kb",
   "version": "0.6.0",
   "type": "module",
   "description": "A persistent memory plugin for Claude Code",
   "license": "MIT",
   "bin": {
-    "cairn": "./src/cli.ts"
+    "kb": "./src/cli.ts"
   },
   "scripts": {
     "dev": "bun run src/cli.ts",

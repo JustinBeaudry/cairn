@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Cairn session capture hook — Stop event
+# KB session capture hook — Stop event
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
-VAULT_PATH="${CAIRN_VAULT:-${HOME}/cairn}"
+VAULT_PATH="${KB_VAULT:-${HOME}/kb}"
 
 if command -v bun >/dev/null 2>&1; then
   BUN_BIN="bun"
 elif [ -x "${HOME}/.bun/bin/bun" ]; then
   BUN_BIN="${HOME}/.bun/bin/bun"
 else
-  mkdir -p "${VAULT_PATH}/.cairn"
-  printf '{"ts":"%s","stage":"bash","reason":"bun-not-found"}\n' "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> "${VAULT_PATH}/.cairn/capture-errors.log"
+  mkdir -p "${VAULT_PATH}/.kb"
+  printf '{"ts":"%s","stage":"bash","reason":"bun-not-found"}\n' "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> "${VAULT_PATH}/.kb/capture-errors.log"
   exit 0
 fi
 

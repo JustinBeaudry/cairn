@@ -52,7 +52,7 @@ function baseManifest(): SessionManifest {
 describe("readManifest / writeManifest", () => {
   let dir: string;
   beforeEach(() => {
-    dir = mkdtempSync(join(tmpdir(), "cairn-manifest-"));
+    dir = mkdtempSync(join(tmpdir(), "kb-manifest-"));
   });
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
@@ -145,7 +145,7 @@ describe("validateManifest", () => {
 describe("readSummaryFrontmatter / writeSummaryFrontmatter", () => {
   let dir: string;
   beforeEach(() => {
-    dir = mkdtempSync(join(tmpdir(), "cairn-summary-"));
+    dir = mkdtempSync(join(tmpdir(), "kb-summary-"));
   });
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
 

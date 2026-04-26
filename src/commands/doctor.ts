@@ -22,7 +22,7 @@ function line(status: Status, label: string, detail?: string): string {
 }
 
 export default defineCommand({
-  meta: { name: "doctor", description: "Report cairn vault + dependency health" },
+  meta: { name: "doctor", description: "Report KB vault + dependency health" },
   args: {
     vaultPath: { type: "string", description: "Path to the vault directory", alias: ["p"] },
   },
@@ -32,15 +32,15 @@ export default defineCommand({
     let warnings = 0;
     let errors = 0;
 
-    lines.push(`cairn doctor — v${VERSION}`);
+    lines.push(`kb doctor — v${VERSION}`);
     lines.push("");
     lines.push("Vault");
 
     const state = checkVaultState(vaultPath);
-    if (state === "cairn") {
+    if (state === "kb") {
       lines.push(line("ok", "vault initialized", vaultPath));
 
-      const statePath = join(vaultPath, ".cairn", "state.json");
+      const statePath = join(vaultPath, ".kb", "state.json");
       try {
         const parsed = JSON.parse(readFileSync(statePath, "utf-8"));
         lines.push(line("ok", "state.json readable", `created ${parsed.createdAt ?? "unknown"}`));
@@ -76,7 +76,7 @@ export default defineCommand({
       lines.push(...budgetHealth.lines);
     } else {
       errors++;
-      lines.push(line("error", `vault state: ${state}`, `run 'cairn init' at ${vaultPath}`));
+      lines.push(line("error", `vault state: ${state}`, `run 'kb init' at ${vaultPath}`));
     }
 
     lines.push("");
@@ -93,7 +93,7 @@ export default defineCommand({
           line(
             "warn",
             "vault not registered",
-            `run 'qmd collection add ${vaultPath} --name cairn --mask "**/*.md" && qmd embed'`
+            `run 'qmd collection add ${vaultPath} --name kb --mask "**/*.md" && qmd embed'`
           )
         );
       }
@@ -108,7 +108,7 @@ export default defineCommand({
     if (await isEntireOnPath()) {
       lines.push(line("ok", "entire binary on PATH"));
     } else {
-      lines.push(line("ok", "entire not installed", "optional, cairn falls back to manifest-only sessions"));
+      lines.push(line("ok", "entire not installed", "optional, KB falls back to manifest-only sessions"));
     }
 
     lines.push("");
@@ -134,7 +134,7 @@ function findNewestMarkdown(vaultPath: string): { path: string; mtimeMs: number 
   const skipDirs = new Set([
     join(vaultPath, "sessions", "summaries"),
     join(vaultPath, "sessions", ".trash"),
-    join(vaultPath, ".cairn"),
+    join(vaultPath, ".kb"),
   ]);
   let newest: { path: string; mtimeMs: number } | null = null;
   for (const root of roots) {
@@ -192,7 +192,7 @@ async function collectSessionHealth(vaultPath: string): Promise<{
     lines.push(line("warn", "bun not found on hook PATH", "Stop hook will fail"));
   }
 
-  const removedLocks = removeStaleSessionLocks(join(vaultPath, ".cairn", "sessions"));
+  const removedLocks = removeStaleSessionLocks(join(vaultPath, ".kb", "sessions"));
   if (removedLocks > 0) {
     lines.push(line("ok", "removed stale session lockfiles", String(removedLocks)));
   }
@@ -305,7 +305,7 @@ function collectInjectBudgetHealth(vaultPath: string): {
   warnings: number;
   errors: number;
 } {
-  const budget = parsePositiveInt(process.env.CAIRN_BUDGET) ?? DEFAULT_BUDGET;
+  const budget = parsePositiveInt(process.env.KB_BUDGET) ?? DEFAULT_BUDGET;
   const contextSize = fileSize(join(vaultPath, "context.md"));
   const indexSize = fileSize(join(vaultPath, "index.md"));
   const coreSize = contextSize + indexSize;
@@ -321,7 +321,7 @@ function collectInjectBudgetHealth(vaultPath: string): {
         line(
           "warn",
           "inject budget exhausted by core vault",
-          `${usage}; raise CAIRN_BUDGET or trim context.md/index.md so sessions can fit`
+          `${usage}; raise KB_BUDGET or trim context.md/index.md so sessions can fit`
         ),
       ],
     };

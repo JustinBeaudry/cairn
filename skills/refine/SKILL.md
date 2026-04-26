@@ -5,7 +5,7 @@ description: >
   merge/split candidates, and backlink gaps. Interactive, user-approved.
 ---
 
-# Cairn — Refine Vault
+# KB — Refine Vault
 
 The fourth core vault operation alongside ingest, query, and lint. Refine
 actively compounds synthesis by improving vault structure and connections.
@@ -13,14 +13,14 @@ actively compounds synthesis by improving vault structure and connections.
 ## Finding Your Vault
 
 Check these in order:
-1. `CAIRN_VAULT` environment variable
-2. `~/cairn` (default location)
+1. `KB_VAULT` environment variable
+2. `~/kb` (default location)
 
 ## Refinement Workflow
 
-When the user runs `/cairn:refine`:
+When the user runs `/kb:refine`:
 
-1. Read `CAIRN.md` for vault conventions if you haven't already this session.
+1. Read `KB.md` for vault conventions if you haven't already this session.
 2. Run the vault health dashboard to establish a baseline:
 
 ```
@@ -62,7 +62,7 @@ When the user runs `/cairn:refine`:
 
 8. **Session-derived context, if needed**:
    - Treat `sessions/*.md` files as manifests, not summaries.
-   - When a refinement question needs session content, run `cairn summarize --json <manifest-path>` and read the returned `path` under `sessions/summaries/`.
+   - When a refinement question needs session content, run `kb summarize --json <manifest-path>` and read the returned `path` under `sessions/summaries/`.
    - If summary generation fails, skip that manifest and list it under `Skipped session summaries`.
    - If the JSON result has `degraded: true`, label any finding from that summary as `Degraded (excerpt-only)`.
 
