@@ -54,9 +54,11 @@ export function buildEagerContext({ vaultPath, budget }: EagerInput): string {
     } catch {
       files = [];
     }
+    const summariesDir = join(sessionsDir, "summaries");
     let headerAdded = false;
     for (const f of files) {
-      const body = readSafely(join(sessionsDir, f));
+      const summaryBody = readSafely(join(summariesDir, f));
+      const body = summaryBody ?? readSafely(join(sessionsDir, f));
       if (body === null) continue;
       const section = headerAdded
         ? `\n---\n${body}`

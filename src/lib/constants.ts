@@ -5,9 +5,8 @@ export const VERSION = "0.6.0";
 export const DEFAULT_VAULT_PATH = join(homedir(), "cairn");
 export const CAIRN_DIR = ".cairn";
 export const STATE_FILE = ".cairn/state.json";
-export const MIGRATION_JOURNAL = ".cairn/migration-journal.json";
 export const CAPTURE_ERRORS_LOG = ".cairn/capture-errors.log";
-export const DEFAULT_BUDGET = 2048; // 2KB in bytes
+export const DEFAULT_BUDGET = 32768; // 32KB; sized for vaults with ~20KB index + recent session headroom
 export const VAULT_DIRS = [
   "wiki",
   "raw",

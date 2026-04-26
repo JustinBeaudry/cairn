@@ -1,15 +1,16 @@
 ---
 name: extract
 description: >
-  Extract wiki-worthy knowledge from unprocessed session summaries.
+  Extract wiki-worthy knowledge from unprocessed session manifests.
   Sessions are sources — extraction runs the normal ingest workflow.
 argument-hint: "[on|off]"
 ---
 
 # Cairn — Extract from Sessions
 
-Sessions are sources. This skill triggers the ingest workflow on unprocessed
-session summaries, extracting wiki-worthy knowledge with user confirmation.
+Sessions are sources. This skill triggers lazy summarization for unprocessed
+session manifests, then runs the ingest workflow on confirmed knowledge with
+user confirmation.
 
 ## Finding Your Vault
 
@@ -49,7 +50,7 @@ When the user runs `/cairn:extract` (no arguments):
    b. If no candidates, mark `extracted: true` and skip.
    c. **Present candidates to the user**: "Session YYYY-MM-DD had N candidates: ..."
    d. User confirms which candidates to file.
-5. For each confirmed candidate, run the standard ingest workflow from CAIRN.md:
+5. For each confirmed candidate, run the ingest cascade from CAIRN.md (steps 3–9 of the Ingest workflow; skip step 2's `raw/` copy when the candidate is Entire-sourced — provenance lives in the checkpoint branch, see below):
    - Create or update wiki pages using the correct page template.
    - Cascade updates to related existing pages.
    - Update backlinks on target pages.
@@ -67,8 +68,8 @@ Extracted from sessions: YYYY-MM-DDTHH-MM-SS. Created [[Page A]], [[Page B]]. Up
 
 ## Entire Checkpoint Provenance
 
-When a session summary has `entire_checkpoint` in its frontmatter, the session
-was captured by Entire and the full transcript is available via `entire explain`.
+When a session manifest has `entire_checkpoint` in its frontmatter, the session
+was captured with Entire context and the full checkpoint is available via `entire explain`.
 
 During extraction:
 
@@ -92,5 +93,5 @@ During extraction:
 1. Sessions are sources — treat extraction like any other ingest.
 2. Discuss before filing — always present candidates and get confirmation.
 3. Use the correct page template for each candidate's type.
-4. Mark sessions `extracted: true` after processing, even if no candidates were filed.
+4. Mark manifests `extracted: true` after processing, even if no candidates were filed.
 5. Read `CAIRN.md` before your first vault operation if you haven't already this session.

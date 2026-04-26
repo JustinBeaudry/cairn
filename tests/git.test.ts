@@ -9,6 +9,8 @@ import {
   uncommittedChanges,
 } from "../src/lib/git";
 
+const describeGit = Bun.which("git") === null ? describe.skip : describe;
+
 async function git(cwd: string, ...args: string[]): Promise<string> {
   const proc = Bun.spawn(["git", ...args], { cwd, stdout: "pipe", stderr: "pipe" });
   const out = await new Response(proc.stdout).text();
@@ -25,7 +27,7 @@ async function makeGitRepo(): Promise<string> {
   return dir;
 }
 
-describe("headCommit", () => {
+describeGit("headCommit", () => {
   let dir: string;
   afterEach(() => { if (dir) rmSync(dir, { recursive: true, force: true }); });
 
@@ -54,7 +56,7 @@ describe("headCommit", () => {
   });
 });
 
-describe("currentBranch", () => {
+describeGit("currentBranch", () => {
   let dir: string;
   afterEach(() => { if (dir) rmSync(dir, { recursive: true, force: true }); });
 
@@ -75,7 +77,7 @@ describe("currentBranch", () => {
   });
 });
 
-describe("filesChangedSince", () => {
+describeGit("filesChangedSince", () => {
   let dir: string;
   afterEach(() => { if (dir) rmSync(dir, { recursive: true, force: true }); });
 
@@ -133,7 +135,7 @@ describe("filesChangedSince", () => {
   });
 });
 
-describe("uncommittedChanges", () => {
+describeGit("uncommittedChanges", () => {
   let dir: string;
   afterEach(() => { if (dir) rmSync(dir, { recursive: true, force: true }); });
 

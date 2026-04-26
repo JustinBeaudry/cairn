@@ -2,7 +2,12 @@ import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { mkdtempSync, rmSync, existsSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { withExclusiveLock, LockBusyError } from "../src/lib/lockfile";
+import {
+  withExclusiveLock,
+  withLogLock,
+  withMigrationLock,
+  LockBusyError,
+} from "../src/lib/lockfile";
 
 describe("withExclusiveLock", () => {
   let dir: string;
@@ -106,6 +111,35 @@ describe("withExclusiveLock", () => {
 
     expect(ran).toBe(true);
     expect(existsSync(lockPath)).toBe(false);
+  });
+
+  it("withLogLock acquires .cairn/log.lock under the vault", async () => {
+    const vaultDir = mkdtempSync(join(tmpdir(), "cairn-vault-"));
+    try {
+      let ran = false;
+      await withLogLock(vaultDir, async () => {
+        ran = true;
+        expect(existsSync(join(vaultDir, ".cairn", "log.lock"))).toBe(true);
+      });
+      expect(ran).toBe(true);
+      expect(existsSync(join(vaultDir, ".cairn", "log.lock"))).toBe(false);
+    } finally {
+      rmSync(vaultDir, { recursive: true, force: true });
+    }
+  });
+
+  it("withMigrationLock acquires .cairn/migration.lock under the vault", async () => {
+    const vaultDir = mkdtempSync(join(tmpdir(), "cairn-vault-"));
+    try {
+      let ran = false;
+      await withMigrationLock(vaultDir, async () => {
+        ran = true;
+        expect(existsSync(join(vaultDir, ".cairn", "migration.lock"))).toBe(true);
+      });
+      expect(ran).toBe(true);
+    } finally {
+      rmSync(vaultDir, { recursive: true, force: true });
+    }
   });
 
   it("throws LockBusyError when retry budget is exhausted", async () => {

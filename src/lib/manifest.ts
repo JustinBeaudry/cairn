@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { parseFrontmatter, serializeFrontmatter } from "./frontmatter";
 import type { FileChange } from "./git";
@@ -20,7 +21,7 @@ export interface SessionManifest {
 
   entire_checkpoint?: string;
   excerpt_incomplete?: boolean;
-  manifest_hash?: string;
+  manifest_hash?: string | null;
 
   extracted?: boolean;
   tags?: string[];
@@ -30,7 +31,7 @@ export interface SessionManifest {
 }
 
 export interface SessionSummaryFrontmatter {
-  manifest_hash: string;
+  manifest_hash: string | null;
   transcript_hash: string | null;
   generated_at: string;
   degraded?: boolean;
@@ -59,6 +60,35 @@ export function shortSessionId(uuid: string): string {
     );
   }
   return stripped.slice(0, 8);
+}
+
+function sortForHash(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sortForHash);
+  if (value === null || typeof value !== "object") return value;
+
+  const sorted: Record<string, unknown> = {};
+  for (const key of Object.keys(value).sort()) {
+    sorted[key] = sortForHash((value as Record<string, unknown>)[key]);
+  }
+  return sorted;
+}
+
+export function computeManifestHash(manifest: SessionManifest): string {
+  const {
+    excerpt: _excerpt,
+    excerpt_incomplete: _excerptIncomplete,
+    manifest_hash: _manifestHash,
+    extracted: _extracted,
+    tags: _tags,
+    decisions: _decisions,
+    open_threads: _openThreads,
+    status: _status,
+    ...hashable
+  } = manifest;
+
+  return createHash("sha256")
+    .update(JSON.stringify(sortForHash(hashable)))
+    .digest("hex");
 }
 
 export function validateManifest(
@@ -99,11 +129,13 @@ export function readManifest(path: string): SessionManifest {
 
 export function writeManifest(path: string, manifest: SessionManifest): void {
   validateManifest(manifest);
-  const content = serializeFrontmatter(
-    manifest as unknown as Record<string, unknown>,
-    ""
-  );
+  const content = serializeSessionManifest(manifest);
   writeFileSync(path, content);
+}
+
+export function serializeSessionManifest(manifest: SessionManifest): string {
+  validateManifest(manifest);
+  return serializeFrontmatter(manifest as unknown as Record<string, unknown>, "");
 }
 
 export function readSummaryFrontmatter(path: string): {

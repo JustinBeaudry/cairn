@@ -6,7 +6,7 @@ import {
   unlinkSync,
   writeSync,
 } from "node:fs";
-import { dirname } from "node:path";
+import { dirname, join } from "node:path";
 
 export interface LockOptions {
   staleMs?: number;
@@ -109,4 +109,20 @@ export async function withExclusiveLock<T>(
   }
 
   throw new LockBusyError(lockPath);
+}
+
+export async function withLogLock<T>(
+  vaultPath: string,
+  fn: () => Promise<T>,
+  opts: LockOptions = {}
+): Promise<T> {
+  return withExclusiveLock(join(vaultPath, ".cairn", "log.lock"), fn, opts);
+}
+
+export async function withMigrationLock<T>(
+  vaultPath: string,
+  fn: () => Promise<T>,
+  opts: LockOptions = {}
+): Promise<T> {
+  return withExclusiveLock(join(vaultPath, ".cairn", "migration.lock"), fn, opts);
 }

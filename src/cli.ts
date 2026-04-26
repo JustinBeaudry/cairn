@@ -1,10 +1,11 @@
 #!/usr/bin/env bun
 import { defineCommand, runMain } from "citty";
+import { VERSION } from "./lib/constants";
 
 const main = defineCommand({
   meta: {
     name: "cairn",
-    version: "0.1.0",
+    version: VERSION,
     description: "A persistent memory plugin for Claude Code",
   },
   subCommands: {
@@ -16,6 +17,9 @@ const main = defineCommand({
     "list-topics": () => import("./commands/list-topics").then((m) => m.default),
     "read-raw": () => import("./commands/read-raw").then((m) => m.default),
     "read-session": () => import("./commands/read-session").then((m) => m.default),
+    "capture-session": () => import("./commands/capture-session").then((m) => m.default),
+    summarize: () => import("./commands/summarize").then((m) => m.default),
+    summaries: () => import("./commands/summaries").then((m) => m.default),
   },
 });
 
