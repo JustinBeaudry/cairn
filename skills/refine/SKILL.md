@@ -61,13 +61,18 @@ When the user runs `/cairn:refine`:
    - For each link target, verify the target's `## Backlinks` section lists the source.
    - Fix any gaps silently (no user approval needed for backlink sync).
 
-8. **Session-derived context, if needed**:
+8. **Research gap surfacing**:
+   - Pull implicit concepts and thin topics from the Lint findings (Lint steps 9–10), re-verifying thin topics against the post-pass backlink counts from step 4.
+   - Collect open questions implied by `Gaps` sections on overview pages (heading level may vary).
+   - Present to user as "Investigations worth pursuing": specific questions to ask, terms to research, external sources to ingest. Never auto-create pages from gaps — they are prompts for the next ingest, not filings.
+
+9. **Session-derived context, if needed**:
    - Treat `sessions/*.md` files as manifests, not summaries.
    - When a refinement question needs session content, run `cairn summarize --json <manifest-path>` and read the returned `path` under `sessions/summaries/`.
    - If summary generation fails, skip that manifest and list it under `Skipped session summaries`.
    - If the JSON result has `degraded: true`, label any finding from that summary as `Degraded (excerpt-only)`.
 
-9. Run the vault health dashboard again to show improvement:
+10. Run the vault health dashboard again to show improvement:
 
 ```
 ## Vault Health (After Refinement)
@@ -77,7 +82,7 @@ When the user runs `/cairn:refine`:
 - Backlinks coverage: N/N pages (N%)
 ```
 
-10. Append to `<vault>/log.md`:
+11. Append to `<vault>/log.md`:
 
 ```
 ## [YYYY-MM-DD] refine | vault refinement pass
