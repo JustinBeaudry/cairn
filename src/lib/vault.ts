@@ -15,7 +15,6 @@ export function resolveVaultPath(projectDir?: string): string {
       try {
         const content = readFileSync(dotKb, "utf-8").trim();
         if (content) return content;
-        if (content) return content;
       } catch {
         // Fall through to default
       }
