@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "3afa2f5c2f97",
+  "strategy": "manual-commit",
+  "branch": "chore/rename-cairn-to-kb",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "README.md",
+    "docs/brainstorms/2026-04-26-obsidian-graph-readability-requirements.md",
+    "templates/CAIRN.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/3a/fa2f5c2f97/0/metadata.json",
+      "transcript": "/3a/fa2f5c2f97/0/full.jsonl",
+      "content_hash": "/3a/fa2f5c2f97/0/content_hash.txt",
+      "prompt": "/3a/fa2f5c2f97/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 58,
+    "cache_creation_tokens": 190614,
+    "cache_read_tokens": 3733531,
+    "output_tokens": 42028,
+    "api_call_count": 39
+  }
+}
