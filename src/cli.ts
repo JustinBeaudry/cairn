@@ -15,7 +15,6 @@ const main = defineCommand({
     "capture-session": () => import("./commands/capture-session").then((m) => m.default),
     summarize: () => import("./commands/summarize").then((m) => m.default),
     summaries: () => import("./commands/summaries").then((m) => m.default),
-    "migrate-sessions": () => import("./commands/migrate-sessions").then((m) => m.default),
   },
 });
 

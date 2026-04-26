@@ -120,19 +120,6 @@ pressure):
 2. **`index.md`** — categorized page index
 3. **Recent sessions** — cached summaries first, then manifests as fallback
 
-## Session migration
-
-Cairn v0.6.0 stores session manifests separately from cached summaries. Existing
-vaults can preview and apply the one-time migration:
-
-```bash
-bunx cairn migrate-sessions
-bunx cairn migrate-sessions --apply --yes
-```
-
-`cairn doctor` warns when legacy session files remain and reports manifest,
-summary, and trash counts.
-
 ## Search (optional)
 
 For larger vaults, [qmd](https://github.com/qntx-labs/qmd) provides

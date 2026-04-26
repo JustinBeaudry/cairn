@@ -4,12 +4,7 @@ import { defineCommand } from "citty";
 import { resolveVaultPath, checkVaultState } from "../lib/vault";
 import { isQmdOnPath, isVaultRegistered, QMD_INSTALL_HINT } from "../lib/qmd";
 import { isEntireOnPath } from "../lib/entire";
-import {
-  CAPTURE_ERRORS_LOG,
-  DEFAULT_BUDGET,
-  MIGRATION_JOURNAL,
-  VERSION,
-} from "../lib/constants";
+import { CAPTURE_ERRORS_LOG, DEFAULT_BUDGET, VERSION } from "../lib/constants";
 import { parseFrontmatter } from "../lib/frontmatter";
 import { validateManifest } from "../lib/manifest";
 
@@ -192,13 +187,6 @@ async function collectSessionHealth(vaultPath: string): Promise<{
     lines.push(line("warn", `${recentErrors} capture errors in last 7 days`, CAPTURE_ERRORS_LOG));
   }
 
-  if (existsSync(join(vaultPath, MIGRATION_JOURNAL))) {
-    warnings++;
-    lines.push(
-      line("warn", "migration in progress", "run 'cairn migrate-sessions --apply' to resume or delete journal")
-    );
-  }
-
   if (!bunResolvableFromHookPath()) {
     warnings++;
     lines.push(line("warn", "bun not found on hook PATH", "Stop hook will fail"));
@@ -247,7 +235,7 @@ async function collectSessionHealth(vaultPath: string): Promise<{
 
   if (legacy > 0) {
     warnings++;
-    lines.push(line("warn", `${legacy} legacy session files detected`, "run 'cairn migrate-sessions' to migrate"));
+    lines.push(line("warn", `${legacy} legacy session files detected`, "delete or convert manually"));
   }
   if (malformed > 0) {
     warnings++;

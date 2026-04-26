@@ -102,14 +102,6 @@ describe("cairn doctor session health", () => {
     expect(result.stdout).toContain("1 capture errors in last 7 days");
   });
 
-  it("warns when a migration journal is present", async () => {
-    writeFileSync(join(env.vault, ".cairn", "migration-journal.json"), "{}");
-
-    const result = await runDoctor(env);
-
-    expect(result.stdout).toContain("migration in progress");
-  });
-
   it("warns on legacy session files and malformed manifests", async () => {
     writeFileSync(join(env.vault, "sessions", "legacy.md"), "---\ntitle: old\n---\n\n## Summary\nOld.\n");
     writeFileSync(
