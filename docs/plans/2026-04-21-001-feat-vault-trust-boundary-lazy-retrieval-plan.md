@@ -141,14 +141,15 @@ During task
 - Mode selection precedence:
   - `CAIRN_INJECT_MODE` env var (hook runtime) overrides all
   - else, if `<vault>/.cairn/config.json` exists and has `inject_mode`, use it
-  - else default: `eager` for existing installs (preserve behavior); `lazy` for fresh installs (deferred to `cairn init` / `doctor` UX — see Unit 5)
+  - else fallback default: `eager` (preserve current behavior for vaults that predate this change and have no `<vault>/.cairn/config.json`)
+  - **Note:** the `lazy`-by-default story for *fresh* installs is owned by Unit 5, not this unit. Unit 5 is responsible for having `cairn init` write `<vault>/.cairn/config.json` with `inject_mode: "lazy"` at scaffold time, so the hook simply reads the explicit config above. This unit must not modify `src/commands/init.ts`.
 - Pointer payload includes:
   - resolved vault path (or a stable alias, if required)
   - top-N categories extracted from `index.md` headings (simple `^## ` match; no parsing of full file)
   - one canonical example command to run (`cairn recall "…"`) and a trust reminder
 - Inject logging:
   - append one JSONL line to `<vault>/.cairn/inject-log.jsonl` with `{timestamp,event,mode,bytes,sections,categories_advertised}`
-  - keep log line size bounded; acquire `withLogLock` equivalent (if staying in bash, keep line small; if calling TS, use `src/lib/lockfile.ts`)
+  - keep log line size bounded **and** acquire a lock that is *compatible with* the TS `withLogLock` in `src/lib/lockfile.ts` (i.e. same lockfile path `<vault>/.cairn/log.lock`, same exclusive-create / stale-reclaim semantics) so a CLI-side rotation rename cannot race with a concurrent bash-side append. Atomic small-line appends alone are insufficient: the CLI rotates by renaming the live file, and an append opened against the pre-rotation inode would silently write into the rotated-out file. If staying in bash, implement the equivalent (e.g. `mkdir <vault>/.cairn/log.lock` or a `flock`-based wrapper that produces the same lock path); if shelling into TS, call through `withLogLock` directly. Unit 4 owns the canonical contract for this lock and the rotation it serializes.
 
 **Test scenarios:**
 - Happy path: `CAIRN_INJECT_MODE=lazy` produces `additionalContext` < 500 bytes and includes the recall hint.
@@ -165,9 +166,9 @@ During task
 
 - [ ] **Unit 2: Sanctioned retrieval CLI (`recall/get/list-topics`)**
 
-**Goal:** Add retrieval subcommands that return curated `wiki/` content only, wrapped in the R8 envelope.
+**Goal:** Add retrieval subcommands that return curated content (`wiki/**` plus curated root docs `context.md`, `index.md`, `log.md`) wrapped in the R8 envelope.
 
-**Requirements:** R4, R8, R9.
+**Requirements:** R4, R7, R8, R9.
 
 **Dependencies:** `src/cli.ts` + new `src/commands/*` following `citty` patterns; optional `qmd` usage when present.
 
@@ -181,16 +182,25 @@ During task
 
 **Approach:**
 - `list-topics`: reads `<vault>/index.md`, extracts headings, returns as envelope payload with provenance.
-- `get <page>`: reads `<vault>/wiki/<page>.md` (or alias mapping) and returns as chunk(s) with provenance line ranges.
+- `get <page>`: returns curated content as chunk(s) with provenance line ranges. Resolution order, in this exact precedence:
+  1. **Curated root doc allowlist** — for the reserved names `context`, `index`, `log` (i.e. `cairn get context|index|log`), read `<vault>/<name>.md` directly. This is the path that satisfies R7 (`cairn get context` returns full `context.md` content in lazy mode).
+  2. **Wiki page** — otherwise read `<vault>/wiki/<page>.md` (or alias mapping).
+  3. **Not found** — return a structured error envelope (`chunks: []` with an error code), never a partial / silent payload.
+  - Path safety: the resolved file must canonicalize to a path inside `<vault>` and must not escape via symlink. The root allowlist is closed (only the three reserved names above) so wiki pages cannot shadow root-doc names by collision: a `wiki/context.md` is reachable only via `cairn get wiki/context` or future explicit aliasing, not via `cairn get context`.
+  - Each returned chunk's provenance `source` records the actual file read (e.g. `context.md` vs `wiki/<page>.md`) so callers can audit which surface answered the request.
 - `recall <query>`:
   - if `qmd` is available/registered, use it; otherwise fall back to a conservative grep over `<vault>/wiki/**.md` (bounded by max files / bytes).
   - empty result returns a valid envelope with `chunks: []` (no “silent nothing”).
 
 **Test scenarios:**
-- Happy path: `get` returns one chunk with `source` and `line_range`.
+- Happy path: `get <wiki-page>` returns one or more chunks sourced from `wiki/<page>.md` with `line_range`.
+- Happy path (R7): `cairn get context` returns the full `<vault>/context.md` body as one or more chunks with `source: "context.md"` (root, not `wiki/`), proving lazy-mode reachability of root context.
+- Happy path: `cairn get index` and `cairn get log` likewise return the curated root docs from `<vault>/index.md` and `<vault>/log.md`.
 - Happy path: `recall` returns multiple chunks, each provenance-stamped.
 - Edge case: empty recall returns envelope with `no_results` and suggests `list-topics`.
+- Edge case: `get <unknown>` (no matching root-doc reserved name and no `wiki/<page>.md`) returns a structured error envelope with `chunks: []` and a non-zero exit code.
 - Edge case: missing vault or missing wiki directory returns a structured error (non-zero exit) without leaking file content.
+- Security: `get` rejects paths that canonicalize outside `<vault>` (e.g. `../../etc/passwd`) and rejects symlink escape.
 
 **Verification:**
 - Tests demonstrate stable envelope schema across commands.
@@ -253,9 +263,13 @@ During task
 
 **Approach:**
 - Access log writes:
-  - store `{timestamp, command, query_hash, query_len, pages_returned, bytes_returned, exit_code}`
+  - store `{timestamp, command, query_hash, query_len, pages_returned, bytes_returned, exit_code, skill_context?}`
   - never store raw query unless explicitly opted in
   - rotate `access-log.jsonl` and `inject-log.jsonl` when exceeding size cap (e.g., 1–5 MB) by renaming to `*.jsonl.1` and starting a new file
+- Cross-process lock contract (canonical for this plan):
+  - both the TS CLI and the bash `hooks/inject` write to the same JSONL log files, so both must serialize through the same lock. Define the lock as `<vault>/.cairn/log.lock` (the path `withLogLock` already uses) with exclusive-create + stale-reclaim semantics matching `src/lib/lockfile.ts`.
+  - rotation (rename `*.jsonl` -> `*.jsonl.1` and create a new file) must happen *inside* this lock, never alongside an unlocked append. Append-only `>>` from bash without the lock is unsafe because a concurrent CLI rotation can move the file out from under the open fd.
+  - the bash side must implement a compatible primitive (e.g. `mkdir <vault>/.cairn/log.lock` as the acquire and `rmdir` to release, with a stale-age check on the directory's mtime) that produces the same lock path and honors the same staleness window as the TS `LockOptions` defaults. If a bash equivalent proves brittle, the fallback is to shell into a small TS entrypoint that wraps the append in `withLogLock`.
 - Sensitive deny posture:
   - do not index `.cairn/` in any retrieval implementation
   - do not offer any default command that prints logs inside agent context (human-only later)
@@ -270,27 +284,30 @@ During task
 
 ---
 
-- [ ] **Unit 5: Enforcement configuration + R2a self-test (best-effort + detection)**
+- [ ] **Unit 5: Enforcement configuration + fresh-install lazy default + R2a self-test (best-effort + detection)**
 
-**Goal:** Ship deny patterns (Read/Grep/Glob; best-effort Bash) and an agent-environment probe that detects misconfigurations.
+**Goal:** Ship deny patterns (Read/Grep/Glob; best-effort Bash), have `cairn init` scaffold fresh vaults with `inject_mode: "lazy"` so Unit 1's hook resolves it via explicit config, and ship an agent-environment probe that detects misconfigurations.
 
-**Requirements:** R2, R2a, Success Criteria (materially reduced + detectable).
+**Requirements:** R2, R2a, R10, Success Criteria (materially reduced + detectable).
 
-**Dependencies:** Requires a concrete repo location and installation story for `.claude/settings.json` and hooks.
+**Dependencies:** Requires a concrete install story that distinguishes repo-tracked plugin metadata from generated/user-local Claude settings. In this repo, plugin metadata lives in `.claude-plugin/` (`plugin.json`, `marketplace.json`) and hooks live at `hooks/` referenced through `${CLAUDE_PLUGIN_ROOT}/hooks/...` from `hooks/hooks.json`. There is no tracked `.claude/settings.json` here — that path is gitignored and treated as installer-generated or user-managed. Deny defaults must therefore be packaged via `.claude-plugin/` (or shipped as installer logic), not committed as a project-local `.claude/settings.json` in this repository.
 
 **Files:**
-- Create: `.claude/settings.json` (add deny patterns for raw/sessions, and for `.cairn/*.jsonl` logs per R13a)
-- Create: `hooks/security-self-test` (or similar) and register it in `hooks/hooks.json` as a manually invokable hook (and/or invoked by `doctor` as guidance only)
-- Modify: `src/commands/doctor.ts` (warn-first: prints “run security self-test” guidance; does not pretend it can simulate tool denies)
-- Test: `tests/security-self-test.test.ts` (limited: asserts script output contract and sentinel creation; the actual tool deny behavior is host-dependent)
+- Create / Modify: `.claude-plugin/` deny-rule defaults (add patterns for `raw/`, `sessions/`, and `.cairn/*.jsonl` logs per R13a). Exact filename follows whatever the Claude Code plugin schema supports for shipping `permissions.deny` defaults (e.g. an additional field in `plugin.json`, or a dedicated settings template under `.claude-plugin/`); document how installation materializes these into the effective Claude settings location (project-local `.claude/settings.json` or user `~/.claude/settings.json`) when needed.
+- Create: `hooks/security-self-test` (the existing hooks live at the repo root and are referenced via `${CLAUDE_PLUGIN_ROOT}/hooks/...` in `hooks/hooks.json`; follow that pattern), and register it in `hooks/hooks.json` as a manually invokable hook (and/or invoked by `doctor` as guidance only).
+- Modify: `src/commands/init.ts` — during fresh-install scaffold, write `<vault>/.cairn/config.json` with `{ "inject_mode": "lazy" }` so Unit 1's hook resolves the lazy default via explicit config rather than special-casing "fresh vs existing" in the hook. Existing vaults without that file fall through to Unit 1's `eager` fallback. Update `tests/init.test.ts` (or equivalent) to cover the new config emission.
+- Modify: `src/commands/doctor.ts` (warn-first: prints "run security self-test" guidance; does not pretend it can simulate tool denies; optionally surfaces the resolved `inject_mode` so users can confirm a fresh install is in `lazy`).
+- Test: `tests/security-self-test.test.ts` (limited: asserts script output contract and sentinel creation; the actual tool deny behavior is host-dependent).
 
 **Approach:**
-- `.claude/settings.json`:
-  - deny patterns must be parameterized to match the resolved vault path(s) as best as the host permits
-  - keep any existing deny rules if present in downstream packaging (e.g. `.entire/metadata/**`)
+- Enforcement config:
+  - define repo-tracked deny-rule defaults under `.claude-plugin/`, **not** by committing a `.claude/settings.json` directly in this repository (that path is gitignored and is the installer/user-managed effective config)
+  - parameterize deny patterns to match the resolved vault path(s) as best as the host permits when installed/generated
+  - preserve any existing downstream deny rules if present in installer-generated/user config (e.g. `.entire/metadata/**`)
+  - document the precedence/merge story explicitly: **repo template/defaults under `.claude-plugin/`** → **installer-generated project config (`.claude/settings.json`)** → **user-managed overrides (`~/.claude/settings.json`)**, with later layers taking precedence
 - R2a probe:
   - prints exact probes it expects to be denied (Read/Grep/Glob + a minimal Bash probe), and the sentinel file paths it created
-  - does not claim completeness; it’s a “smoke test” regression detector
+  - does not claim completeness; it's a "smoke test" regression detector
   - designed to be run by an agent session (or by a human following its printed steps)
 
 **Test scenarios:**
@@ -315,7 +332,7 @@ During task
 - Modify: `skills/cairn/SKILL.md`
 - Modify: `skills/extract/SKILL.md`
 - Modify: `skills/refine/SKILL.md`
-- Test: `tests/docs-contract.test.ts` (lightweight “reference checks”)
+- Modify: `tests/skill-contract.test.ts` — extend the existing skill/template/command reference-check suite with cases for the new commands and the deny posture (templates mention `cairn recall/get/list-topics` and the deny stance; skills mention `read-raw/read-session` as ask-gated). Reuses the established `read()` helper and `describe` block rather than introducing a parallel `tests/docs-contract.test.ts`, keeping discovery and CI output predictable.
 
 **Approach:**
 - Make the trust boundary legible:
@@ -334,7 +351,7 @@ During task
 
 ## System-Wide Impact
 
-- **Interaction graph:** `hooks/inject` changes behavior; CLI grows new commands; `.claude/settings.json` changes agent permissions; skills and templates updated.
+- **Interaction graph:** `hooks/inject` changes behavior; CLI grows new commands; deny-rule defaults shipped via `.claude-plugin/` materialize at install time into the effective Claude settings (project-local or user-level) and change agent permissions; skills and templates updated.
 - **Error propagation:** retrieval commands must fail closed on missing vault; ask-gated commands must fail closed on non-interactive contexts.
 - **State lifecycle risks:** logs rotate; lockfile serialization must avoid corrupting JSONL.
 - **API surface parity:** new CLI commands are public and must be stable; mode config is external contract (`CAIRN_INJECT_MODE`, `<vault>/.cairn/config.json`).

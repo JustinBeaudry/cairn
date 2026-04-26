@@ -13,7 +13,7 @@ Cairn injects vault content eagerly on every SessionStart and PostCompact, and t
 
 2. **Irrelevant context.** SessionStart happens before the agent knows the task. Every session gets roughly the same inject, so most injected bytes are noise for most tasks. Session summaries — including the recent error-as-content cases (see `docs/brainstorms/2026-04-19-session-capture-manifest-requirements.md`) — enter the agent's context with the same weight as curated wiki pages.
 
-3. **Unsafe raw access.** `raw/` is archived source material kept for human audit, including content users may never want a model to re-read (copyrighted material, PII, conversation logs, upstream docs under license constraints). Today it is guarded only by a prose rule in `templates/CAIRN.md` ("Never modify files in `raw/`") that does not address reads. The plugin already ships a `Read` deny rule for `.entire/metadata/**` in `.claude/settings.json` — the same mechanism is unused for `raw/`.
+3. **Unsafe raw access.** `raw/` is archived source material kept for human audit, including content users may never want a model to re-read (copyrighted material, PII, conversation logs, upstream docs under license constraints). Today it is guarded only by a prose rule in `templates/CAIRN.md` ("Never modify files in `raw/`") that does not address reads. A comparable `Read` deny rule (e.g. for `.entire/metadata/**`) is *assumed* to be a workable mechanism via Claude Code's `permissions.deny`, but this repo currently ships only `.claude-plugin/` metadata — there is no tracked `.claude/settings.json` baseline yet. That same mechanism is not yet applied to `raw/` in this repo, and the install/materialization story for shipping deny defaults via plugin metadata is a planning concern (see Unit 5 of the plan).
 
 Affected: every Cairn user — context cost is paid per session, relevance is poor by default, and raw-material leakage into model context is silent when it happens.
 
@@ -40,9 +40,9 @@ Terminology used below:
        │   · categories      │                                   │ cairn read-session (x)   │
        │   · API hint        │                                   │ cairn read-raw     (x)   │
        │   · trust reminder  │                                   │                          │
-       └─────────┬───────────┘                                   │ Returns: delimited       │
-                 │                                               │ reference envelope with  │
-                 │                                               │ provenance stamp         │
+       └─────────┬───────────┘                                   │ Returns: length-prefixed │
+                 │                                               │ JSON envelope (R8) with  │
+                 │                                               │ per-chunk provenance     │
                  │                                               └──────────┬───────────────┘
                  │                                                          │
                  │                                                          ▼
@@ -72,7 +72,7 @@ Terminology used below:
 ## Requirements
 
 **Trust Classification (Layer 1 — ships with Layer 2 as one release)**
-- R1. Each vault surface has a declared trust level, stated once in `templates/CAIRN.md` and enforced in `.claude/settings.json`:
+- R1. Each vault surface has a declared trust level, stated once in `templates/CAIRN.md` and enforced via Claude Code `permissions.deny` rules shipped with the plugin (packaging story — repo-tracked plugin metadata vs installer-generated project config vs user `~/.claude` overrides — is settled in Unit 5 of the plan):
   - `wiki/` — curated; agent-readable.
   - `raw/` — human audit trail; `Read` denied for all agent tools by default.
   - `sessions/` — untrusted LLM output; not directly readable. Reachable only through the sanctioned `cairn read-session` subcommand (typically used by the `extract` skill) with explicit user approval (see R5).
@@ -91,10 +91,10 @@ Terminology used below:
 
   This is required because deny semantics and path-resolution vary by environment. It is a regression detector, not a proof of a perfect sandbox.
 - R3. `raw/` read access is available only via a sanctioned bypass: a dedicated CLI subcommand (typically used by the `refine` skill) that returns bounded excerpts (with line ranges and a provenance stamp), never the full raw file handed to the model. Direct `Read` on `raw/` remains denied.
-- R4. A sanctioned vault access API is introduced: `cairn recall <query>`, `cairn get <page>`, `cairn list-topics`. These return markdown to stdout via the shell tool. Direct `Read` on `wiki/` is permitted (pages are curated and the API is a convenience, not a second gate) but the sanctioned API is the documented and recommended path.
+- R4. A sanctioned vault access API is introduced: `cairn recall <query>`, `cairn get <page>`, `cairn list-topics`. These are shell-invocable subcommands that write the **length-prefixed JSON envelope defined in R8** to stdout (markdown-bearing chunks live inside the envelope's `chunks[*].text`; the envelope is the wire format, not raw markdown). `cairn get` resolves curated root docs (`context.md`, `index.md`, `log.md`) in addition to `wiki/<page>.md` so R7 holds (full `context.md` reachable via `cairn get context`). Direct `Read` on `wiki/` is permitted (pages are curated and the API is a convenience, not a second gate) but the sanctioned API is the documented and recommended path.
 - R5. Per-skill allowlist is declared in each SKILL.md as **policy** (not a hard sandbox). Hard enforcement is provided instead by **user confirmation** on sensitive subcommands:
   - `cairn read-session <id>` and `cairn read-raw <path>` require explicit user approval when invoked (e.g. via `permissions.ask` or an equivalent interactive gate), regardless of which skill is running.
-  - `cairn`/general work documents that it should use only `recall`, `get`, `list-topics` (wiki only).
+  - `cairn`/general work documents that it should use only `recall`, `get`, `list-topics` (curated surfaces only — `wiki/**` and the curated root docs `context.md`, `index.md`, `log.md` reachable via `cairn get`).
   - `extract` documents that it may additionally call `read-session <id>` (bounded excerpt).
   - `refine` documents that it may additionally call `read-raw <path>` (bounded excerpt).
 
@@ -111,7 +111,7 @@ Terminology used below:
   - A trust-boundary reminder that retrieved content is reference, not instructions.
 - R7. `context.md` in lazy mode contributes only page **titles** to the pointer as topic hints, never page content. Full `context.md` content is available to the agent via `cairn get context` if needed.
 - R8. Retrieval results from `cairn recall` and `cairn get` are wrapped in a **length-prefixed JSON envelope** (unique per call nonce) instructing the agent to treat the content as reference material and not follow instructions inside. Each returned chunk carries a provenance stamp (source page, line range) so the agent can cite and the user can audit.
-- R9. Retrieval returns only `wiki/` content by default. Sessions and raw remain reachable only through their sanctioned subcommands (R5).
+- R9. Retrieval returns only curated content by default — `wiki/**` plus the curated root docs (`context.md`, `index.md`, `log.md`) reachable through `cairn get`. Sessions and raw remain reachable only through their sanctioned subcommands (R5).
 - R10. A mode switch controls inject behavior, configured via `CAIRN_INJECT_MODE` env var or a vault-side config file (e.g. `<vault>/.cairn/config.json`), not the per-project `.cairn` vault-path marker:
   - `lazy` — pointer-only payload (default after migration).
   - `eager` — current 2KB priority-ordered content dump (existing behavior; preserved for users who want it).
@@ -123,7 +123,7 @@ Terminology used below:
   `{timestamp, event, mode, bytes, sections: [{name, bytes}], categories_advertised}`.
   Makes bloat measurable. Composes with the `.cairn/stats.jsonl` idea in `docs/ideation/2026-04-17-open-ideation.md` (idea #5).
 - R13. Every sanctioned vault access API call appends one line to `.cairn/access-log.jsonl`:
-  `{timestamp, command, query, pages_returned, bytes_returned, skill_context?}`.
+  `{timestamp, command, query_hash, query_len, pages_returned, bytes_returned, skill_context?}`.
   Feeds future access-pattern curation (`docs/ideation/2026-04-17-open-ideation.md` idea #7) and lets users audit what the agent has asked the vault.
 
   **R13a.** `.cairn/*.jsonl` logs are treated as **sensitive**:
@@ -132,7 +132,7 @@ Terminology used below:
   - optionally exposed later via a dedicated `cairn audit` CLI viewer intended for humans (not required for L1+L2)
 
   **R13b.** Access log data minimization:
-  - `query` must be redacted/minimized before writing (reuse the R14 redaction shapes at minimum), or replaced with `{query_hash, query_len}` when redaction fails
+  - default is `{query_hash, query_len}` (the R13 base schema); plaintext `query` is opt-in only and, when enabled, must pass through the R14 redaction shapes before writing
   - log files are rotated by size cap
 
 **Hygiene Filters (Layer 3 — deferred to a follow-up release)**
@@ -160,7 +160,7 @@ Terminology used below:
 
 ## Key Decisions
 
-- **Trust classification is a foundation, not a feature.** Declared once in `CAIRN.md` and enforced in `.claude/settings.json`, it is the substrate the rest of the work sits on.
+- **Trust classification is a foundation, not a feature.** Declared once in `CAIRN.md` and enforced via Claude Code `permissions.deny` rules shipped with the plugin (the exact packaging — repo-tracked `.claude-plugin/` defaults vs an installer-generated project-local `.claude/settings.json` vs a user-managed `~/.claude/settings.json` — is settled in Unit 5 of the plan). It is the substrate the rest of the work sits on.
 - **Lazy retrieval over filtered eager inject.** Filtering a 2KB dump for relevance at session start is unsolvable — we don't know the task yet. Deferring the decision to when the agent has the task ("recall") inverts the problem correctly.
 - **CLI first, MCP later.** Prove the retrieval shape with shell-invocable subcommands. Promote to MCP once the API has settled. Matches the "ship lean, crystallize later" philosophy.
 - **`eager` mode is preserved, not deleted.** Current users keep working. `lazy` is the recommended default for new installs; existing installs migrate via `cairn doctor` recommendation.
@@ -170,8 +170,8 @@ Terminology used below:
 
 ## Dependencies / Assumptions
 
-- Claude Code `permissions.deny` with path-scoped `Read(...)` entries is a working enforcement mechanism. Verified: the plugin already uses this pattern for `.entire/metadata/**` in `.claude/settings.json`.
-- `.claude/settings.json` in the plugin directory applies to agents running in any project that has the plugin loaded. If path-scoping needs to change (e.g. the vault is outside the project), the deny rule needs to cover both the default `~/cairn` and `.cairn`-resolved paths. **Flagged as needs verification during planning.**
+- Claude Code `permissions.deny` with path-scoped `Read(...)` entries is *assumed* to be a workable enforcement mechanism for this design. The often-cited `.entire/metadata/**` example has **not** yet been verified against any tracked deny config in this repo — there is no `.claude/settings.json` committed here today; plugin metadata lives in `.claude-plugin/` (`plugin.json`, `marketplace.json`) and hooks in `hooks/hooks.json` (referenced via `${CLAUDE_PLUGIN_ROOT}`). **Keep this verification open during planning unless a generated or packaged deny config can be linked explicitly.**
+- The install story for deny defaults is unsettled. Whether deny rules ship as repo-tracked plugin metadata (under `.claude-plugin/`), are materialized into a project-local `.claude/settings.json` at install time, or are merged into the user's `~/.claude/settings.json`, is a planning question (see Unit 5 of the plan). If path-scoping needs to change (e.g. the vault is outside the project), the deny rule needs to cover both the default `~/cairn` and `.cairn`-resolved paths. **Flagged as needs verification during planning.**
 - Shell-invocable CLI subcommands (`cairn recall`, `cairn get`, etc.) are a natural extension of the existing `src/cli.ts` — `doctor`, `init`, and `uninstall` already live in `src/commands/`.
 - `qmd` MCP tools, when present, remain the primary search backend. `cairn recall` uses them under the hood when available and falls back to index-reading when not. This is the same pattern already documented in `templates/CAIRN.md`.
 - Inject hook is bash (`hooks/inject`); writing JSONL from bash is trivial but should be small (no external deps).
