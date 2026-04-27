@@ -13,7 +13,7 @@ your agent across sessions. Based on [Karpathy's LLM Wiki pattern](https://gist.
 ## Install
 
 ```bash
-bunx @justinbeaudry/kb init
+bunx @beaudry/kb init
 ```
 
 Scaffolds `~/kb` with vault structure and registers hooks in Claude Code.
@@ -22,7 +22,7 @@ Safe to run again — idempotent.
 ### Custom vault path
 
 ```bash
-bunx @justinbeaudry/kb init --vault-path /path/to/vault
+bunx @beaudry/kb init --vault-path /path/to/vault
 ```
 
 ### Per-project vault
@@ -150,7 +150,7 @@ or custom integrations, set `KB_SUMMARIZE_COMMAND` to a compatible command.
 ## Uninstall
 
 ```bash
-bunx @justinbeaudry/kb uninstall
+bunx @beaudry/kb uninstall
 ```
 
 Removes hooks from Claude Code. Your vault is preserved.

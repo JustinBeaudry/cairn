@@ -1,11 +1,38 @@
 {
-  "name": "@justinbeaudry/kb",
+  "name": "@beaudry/kb",
   "version": "0.6.0",
   "type": "module",
   "description": "A persistent memory plugin for Claude Code",
   "license": "MIT",
+  "author": "Justin Beaudry",
+  "homepage": "https://github.com/JustinBeaudry/kb",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JustinBeaudry/kb.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JustinBeaudry/kb/issues"
+  },
+  "keywords": [
+    "claude-code",
+    "memory",
+    "vault",
+    "markdown",
+    "knowledge-base",
+    "obsidian"
+  ],
   "bin": {
-    "kb": "./src/cli.ts"
+    "kb": "bin/kb.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "templates",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "dev": "bun run src/cli.ts",
