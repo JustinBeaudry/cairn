@@ -97,15 +97,15 @@ Do **not** apply when the codebase is genuinely large (25K+ LOC), the axes are g
 - Unit 5: Breadth architecture persona
 - Unit 6: Breadth CLI-agent-readiness persona
 - Unit 7: Scripted Claude-runs behavioral exercise
-- Synthesis: collate seven outputs into `docs/reviews/2026-04-24-cairn-systematic-review.md`
+- Synthesis: collate seven outputs into `docs/reviews/2026-04-24-cairn-systematic-review.md` (directory no longer exists)
 - Result before execution: 5 P0s in document-review, plan abandoned.
 
 **After (walkthrough):**
 - Read `hooks/inject` (109 lines)
 - Read `src/lib/frontmatter.ts` (47 lines)
 - Read `src/lib/manifest.ts` (~160 lines)
-- Read `templates/CAIRN.md` (~390 lines)
-- Read `skills/cairn/SKILL.md` (~130 lines)
+- Read `templates/KB.md` (~390 lines)
+- Read `skills/kb/SKILL.md` (~130 lines)
 - Inspect `~/cairn` vault on disk
 - Result: 4 bugs found and fixed in 2 commits, 30 minutes (commits `7d5269d`, `5cdea88`).
 
@@ -118,7 +118,7 @@ Do **not** apply when the codebase is genuinely large (25K+ LOC), the axes are g
 
 The pattern: walkthroughs find bugs by **co-locating reading and execution on the actual artifact**. Orchestrated reviews find themes by summarizing reads, and themes lose specificity at the synthesis step.
 
-**Contrast case — when orchestration was right-sized.** (session history) On 2026-04-18 the user ran `/ce:review` on cairn's skills against an upstream Karpathy gist. That review dispatched parallel sub-agents and returned 6 findings without any ceremony complaint. The difference: focused external comparison target, bounded artifact set (3 skill files + templates), specific axis (does-this-match-source). When the question genuinely has multiple independent axes and an external reference frame, parallel personas earn their cost.
+**Contrast case — when orchestration was right-sized.** (session history) On 2026-04-18 the user ran `/ce:review` on kb's skills (then cairn's) against an upstream Karpathy gist. That review dispatched parallel sub-agents and returned 6 findings without any ceremony complaint. The difference: focused external comparison target, bounded artifact set (3 skill files + templates), specific axis (does-this-match-source). When the question genuinely has multiple independent axes and an external reference frame, parallel personas earn their cost.
 
 ## Related
 
