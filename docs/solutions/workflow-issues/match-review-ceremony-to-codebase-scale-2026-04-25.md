@@ -104,15 +104,15 @@ Do **not** apply when the codebase is genuinely large (25K+ LOC), the axes are g
 - Read `hooks/inject` (109 lines)
 - Read `src/lib/frontmatter.ts` (47 lines)
 - Read `src/lib/manifest.ts` (~160 lines)
-- Read `templates/KB.md` (~390 lines)
-- Read `skills/kb/SKILL.md` (~130 lines)
-- Inspect `~/cairn` vault on disk
+- Read `templates/KB.md` (~440 lines)
+- Read `skills/kb/SKILL.md` (~140 lines)
+- Inspect `~/kb` vault on disk
 - Result: 4 bugs found and fixed in 2 commits, 30 minutes (commits `7d5269d`, `5cdea88`).
 
 **Bugs the walkthrough found that orchestrated review would have buried:**
 
 - *20KB `index.md` vs 2KB injection budget.* Concrete, on-disk, falsifiable. In a seven-persona pass, this gets generalized into "context-budget enforcement is best-effort" and lands as P2 design feedback.
-- *224 legacy session files in three schemas.* Found by `ls ~/cairn/sessions | wc -l` plus reading three sample files. No persona was assigned to "actually look at the user's vault."
+- *224 legacy session files in three schemas.* Found by `ls ~/kb/sessions | wc -l` plus reading three sample files. No persona was assigned to "actually look at the user's vault."
 - *Migration tool crashes on one malformed-YAML file.* Found by running the tool. Behavioral persona was scoped to scripted Claude runs, not the migration CLI.
 - *JSON escape missing control chars beyond `\n\r\t`.* Found by reading `hooks/inject` line by line. A correctness persona summarizing 109 lines of bash would likely note "escaping looks reasonable" and move on.
 
